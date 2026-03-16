@@ -1,0 +1,106 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Reservation Confirmed - EventBooking{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/confirmation.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="confirmation-page">
+        <!-- Optional confetti effect -->
+        <div class="confetti-container">
+            <div class="confetti"></div>
+            <div class="confetti"></div>
+            <div class="confetti"></div>
+            <div class="confetti"></div>
+            <div class="confetti"></div>
+            <div class="confetti"></div>
+            <div class="confetti"></div>
+            <div class="confetti"></div>
+            <div class="confetti"></div>
+            <div class="confetti"></div>
+        </div>
+
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-10 col-lg-8">
+                    <div class="confirmation-card">
+                        <div class="card-body text-center py-5 px-4 px-md-5">
+                            <div class="success-icon-wrapper">
+                                <i class="bi bi-check-circle-fill success-icon"></i>
+                            </div>
+                            
+                            <h1 class="confirmation-title">Thank You!</h1>
+                            <p class="confirmation-subtitle">Your reservation has been confirmed.</p>
+                            
+                            <div class="success-alert">
+                                <p class="mb-0">
+                                    <i class="bi bi-envelope-fill me-2"></i>
+                                    A confirmation email has been sent to <strong>{{ reservation.email }}</strong>
+                                </p>
+                            </div>
+
+                            <div class="details-card">
+                                <div class="details-header">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-ticket-perforated"></i>
+                                        Reservation Details
+                                    </h5>
+                                </div>
+                                <div class="details-body">
+                                    <table class="reservation-table">
+                                        <tr>
+                                            <th><i class="bi bi-calendar-event me-2"></i>Event:</th>
+                                            <td><strong>{{ reservation.event.title }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <th><i class="bi bi-calendar me-2"></i>Date:</th>
+                                            <td>{{ reservation.event.date|date('F j, Y - g:i a') }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th><i class="bi bi-geo-alt me-2"></i>Location:</th>
+                                            <td>{{ reservation.event.location }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th><i class="bi bi-person me-2"></i>Name:</th>
+                                            <td>{{ reservation.name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th><i class="bi bi-envelope me-2"></i>Email:</th>
+                                            <td>{{ reservation.email }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th><i class="bi bi-phone me-2"></i>Phone:</th>
+                                            <td>{{ reservation.phone }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th><i class="bi bi-upc-scan me-2"></i>Reservation ID:</th>
+                                            <td>
+                                                <span class="reservation-id" title="Your unique reservation identifier">
+                                                    #{{ reservation.id|slice(0, 8) }}...
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="action-buttons">
+                                <a href="{{ path('app_events_list') }}" class="btn-browse">
+                                    <i class="bi bi-calendar"></i>
+                                    Browse More Events
+                                </a>
+                                <a href="{{ path('app_home') }}" class="btn-home">
+                                    <i class="bi bi-house"></i>
+                                    Back to Home
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

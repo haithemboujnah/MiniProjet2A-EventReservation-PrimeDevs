@@ -1,0 +1,115 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Home - EventBooking{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/home.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="home-page">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="container">
+                <div class="hero-content text-center">
+                    <h1 class="hero-title">
+                        Find Your 
+                        <span class="d-block d-sm-inline">Next Adventure</span>
+                    </h1>
+                    <p class="hero-subtitle">
+                        Discover amazing events and make unforgettable memories
+                    </p>
+                    <a href="{{ path('app_events_list') }}" class="hero-btn">
+                        Browse Events
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Events Section -->
+        <div class="container">
+            <div class="section-title">
+                <h2>
+                    <i class="bi bi-stars me-2"></i>
+                    Upcoming Events
+                </h2>
+                <p>Don't miss out on these amazing experiences</p>
+            </div>
+            
+            <div class="events-grid">
+                {% for event in events %}
+                    <div class="event-card">
+                        <div class="event-image-wrapper">
+                            {% if event.imageUrl %}
+                                <img src="{{ event.imageUrl }}" class="event-image" alt="{{ event.title }}">
+                                <div class="event-image-overlay"></div>
+                            {% else %}
+                                <div class="event-image-placeholder">
+                                    <i class="bi bi-calendar-event"></i>
+                                </div>
+                            {% endif %}
+
+                            {% if loop.first %}
+                                <span class="event-badge featured">
+                                    <i class="bi bi-star-fill me-1"></i>Featured
+                                </span>
+                            {% elseif event.date > date() %}
+                                <span class="event-badge upcoming">
+                                    <i class="bi bi-sun me-1"></i>Upcoming
+                                </span>
+                            {% else %}
+                                <span class="event-badge past">
+                                    <i class="bi bi-clock-history me-1"></i>Past
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="event-content">
+                            <h5 class="event-title">{{ event.title }}</h5>
+                            
+                            <div class="event-meta">
+                                <div class="event-meta-item">
+                                    <i class="bi bi-calendar"></i>
+                                    {{ event.date|date('F j, Y') }}
+                                </div>
+                                <div class="event-meta-item">
+                                    <i class="bi bi-clock"></i>
+                                    {{ event.date|date('g:i A') }}
+                                </div>
+                                <div class="event-meta-item">
+                                    <i class="bi bi-geo-alt"></i>
+                                    {{ event.location }}
+                                </div>
+                            </div>
+                            
+                            <p class="event-description">
+                                {{ event.description|slice(0, 100) ~ '...' }}
+                            </p>
+                            
+                            <div class="seats-info">
+                                <div class="seats-icon">
+                                    <i class="bi bi-people-fill"></i>
+                                </div>
+                                <span class="seats-text">
+                                    <strong>{{ event.availableSeats }}</strong> seats available
+                                </span>
+                            </div>
+
+                            <a href="{{ path('app_event_show', {'id': event.id}) }}" class="view-details-btn">
+                                View Details
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-calendar-x"></i>
+                        <p>No upcoming events found. Check back soon!</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

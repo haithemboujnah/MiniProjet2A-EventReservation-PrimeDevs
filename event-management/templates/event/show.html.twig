@@ -1,0 +1,143 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ event.title }} - EventBooking{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/event-show.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="event-show-page">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_home') }}"><i class="bi bi-house me-1"></i>Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_events_list') }}">Events</a></li>
+                    <li class="breadcrumb-item active" title="{{ event.title }}" aria-current="page">{{ event.title }}</li>
+                </ol>
+            </nav>
+
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="event-main-card">
+                        {% if event.imageUrl %}
+                            <div class="event-image-container">
+                                <img src="{{ event.imageUrl }}" class="event-image" alt="{{ event.title }}">
+                                <div class="event-image-overlay"></div>
+                            </div>
+                        {% endif %}
+                        <div class="event-card-body">
+                            <h1 class="event-title">{{ event.title }}</h1>
+                            
+                            <div class="event-details-grid">
+                                <div class="event-detail-item">
+                                    <div class="event-detail-icon">
+                                        <i class="bi bi-calendar"></i>
+                                    </div>
+                                    <div class="event-detail-label">Date & Time</div>
+                                    <div class="event-detail-value">
+                                        {{ event.date|date('l, F j, Y') }}<br>
+                                        <small>{{ event.date|date('g:i a') }}</small>
+                                    </div>
+                                </div>
+
+                                <div class="event-detail-item">
+                                    <div class="event-detail-icon">
+                                        <i class="bi bi-geo-alt"></i>
+                                    </div>
+                                    <div class="event-detail-label">Location</div>
+                                    <div class="event-detail-value">{{ event.location }}</div>
+                                </div>
+
+                                <div class="event-detail-item">
+                                    <div class="event-detail-icon">
+                                        <i class="bi bi-people"></i>
+                                    </div>
+                                    <div class="event-detail-label">Available Seats</div>
+                                    <div class="event-detail-value">
+                                        <span class="seats-badge bg-{{ event.availableSeats > 0 ? 'success' : 'danger' }}">
+                                            {{ event.availableSeats }} / {{ event.seats }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="section-divider">
+
+                            <h5 class="section-title">
+                                <i class="bi bi-info-circle"></i>
+                                About this event
+                            </h5>
+                            <div class="event-description">
+                                {{ event.description|nl2br }}
+                            </div>
+
+                            <hr class="section-divider">
+
+                            <div class="d-grid gap-2">
+                                {% if event.availableSeats > 0 %}
+                                    <a href="{{ path('app_event_reserve', {'id': event.id}) }}" class="reserve-btn">
+                                        <i class="bi bi-ticket-perforated"></i>
+                                        Reserve Now
+                                    </a>
+                                {% else %}
+                                    <button class="sold-out-btn" disabled>
+                                        <i class="bi bi-x-circle"></i>
+                                        Sold Out
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="sidebar-card">
+                        <div class="sidebar-card-body">
+                            <h5 class="sidebar-card-title">
+                                <i class="bi bi-info-square"></i>
+                                Event Information
+                            </h5>
+                            <ul class="info-list">
+                                <li>
+                                    <i class="bi bi-clock"></i>
+                                    <strong>Duration:</strong>
+                                    <span>TBD</span>
+                                </li>
+                                <li>
+                                    <i class="bi bi-ticket-perforated"></i>
+                                    <strong>Ticket Type:</strong>
+                                    <span>General Admission</span>
+                                </li>
+                                <li>
+                                    <i class="bi bi-envelope"></i>
+                                    <strong>Contact:</strong>
+                                    <span>info@eventbooking.com</span>
+                                </li>
+                            </ul>
+                            
+                            <hr class="section-divider">
+                            
+                            <h6 class="sidebar-card-title" style="font-size: 1rem;">
+                                <i class="bi bi-share"></i>
+                                Share this event
+                            </h6>
+                            <div class="share-buttons">
+                                <a href="#" class="share-btn facebook" title="Share on Facebook">
+                                    <i class="bi bi-facebook"></i>
+                                </a>
+                                <a href="#" class="share-btn twitter" title="Share on Twitter">
+                                    <i class="bi bi-twitter"></i>
+                                </a>
+                                <a href="#" class="share-btn whatsapp" title="Share on WhatsApp">
+                                    <i class="bi bi-whatsapp"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

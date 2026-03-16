@@ -1,0 +1,222 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}All Events - EventBooking{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/events-list.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="events-list-page">
+        <div class="container">
+            <div class="events-header">
+                <h1>
+                    <i class="bi bi-calendar-event me-3"></i>
+                    All Events
+                </h1>
+                <div class="filter-dropdown">
+                    <button class="filter-btn" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-funnel"></i>
+                        Filter Events
+                        <i class="bi bi-chevron-down ms-2"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="{{ path('app_events_list', {'page': 1, 'filter': 'upcoming', 'search': app.request.get('search')}) }}">
+                                <i class="bi bi-sun"></i>
+                                Upcoming Events
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ path('app_events_list', {'page': 1, 'filter': 'past', 'search': app.request.get('search')}) }}">
+                                <i class="bi bi-moon"></i>
+                                Past Events
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="{{ path('app_events_list', {'page': 1}) }}">
+                                <i class="bi bi-grid"></i>
+                                All Events
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="search-section">
+                <form method="get" action="{{ path('app_events_list') }}" class="search-form">
+                    <input type="hidden" name="page" value="1">
+                    <input type="text" 
+                           name="search" 
+                           class="search-input" 
+                           placeholder="Search by title, location, or description..." 
+                           value="{{ app.request.get('search') }}">
+                    <button type="submit" class="search-btn">
+                        <i class="bi bi-search"></i>
+                        Search
+                    </button>
+                </form>
+            </div>
+
+            <!-- Active filters display -->
+            {% if app.request.get('filter') or app.request.get('search') %}
+                <div class="active-filters">
+                    {% if app.request.get('filter') %}
+                        <span class="filter-tag">
+                            <i class="bi bi-funnel"></i>
+                            {{ app.request.get('filter')|capitalize }} Events
+                            <a href="{{ path('app_events_list', {'page': 1, 'search': app.request.get('search')}) }}" class="remove-filter">
+                                <i class="bi bi-x"></i>
+                            </a>
+                        </span>
+                    {% endif %}
+                    {% if app.request.get('search') %}
+                        <span class="filter-tag">
+                            <i class="bi bi-search"></i>
+                            "{{ app.request.get('search') }}"
+                            <a href="{{ path('app_events_list', {'page': 1, 'filter': app.request.get('filter')}) }}" class="remove-filter">
+                                <i class="bi bi-x"></i>
+                            </a>
+                        </span>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% if events is empty %}
+                <div class="empty-state">
+                    <i class="bi bi-calendar-x"></i>
+                    <h3>No Events Found</h3>
+                    <p>There are no events available at the moment. Please check back later or try a different search.</p>
+                </div>
+            {% else %}
+                <div class="events-grid">
+                    {% for event in events %}
+                        <div class="event-card">
+                            <div class="event-image-container">
+                                {% if event.imageUrl %}
+                                    <img src="{{ event.imageUrl }}" class="event-image" alt="{{ event.title }}">
+                                    <div class="event-image-overlay"></div>
+                                {% else %}
+                                    <div class="event-image-placeholder">
+                                        <i class="bi bi-calendar-event"></i>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if event.date > date() %}
+                                    <span class="event-badge upcoming">
+                                        <i class="bi bi-sun me-1"></i>Upcoming
+                                    </span>
+                                {% else %}
+                                    <span class="event-badge past">
+                                        <i class="bi bi-moon me-1"></i>Past
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <div class="event-content">
+                                <h5 class="event-title">{{ event.title }}</h5>
+                                
+                                <div class="event-meta">
+                                    <div class="event-meta-item">
+                                        <i class="bi bi-calendar"></i>
+                                        {{ event.date|date('M d, Y - h:i A') }}
+                                    </div>
+                                    <div class="event-meta-item">
+                                        <i class="bi bi-geo-alt"></i>
+                                        {{ event.location }}
+                                    </div>
+                                </div>
+                                
+                                <p class="event-description">
+                                    {{ event.description|slice(0, 100) ~ '...' }}
+                                </p>
+                            </div>
+
+                            <div class="event-footer">
+                                <span class="seats-badge {{ event.availableSeats > 0 ? 'available' : 'unavailable' }}">
+                                    <i class="bi bi-people"></i>
+                                    {{ event.availableSeats }} / {{ event.seats }} seats
+                                </span>
+                                
+                                <a href="{{ path('app_event_show', {'id': event.id}) }}" class="view-details-btn">
+                                    View Details
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+
+                            <div class="time-indicator">
+                                <i class="bi bi-clock"></i>
+                                {% if event.date > date() %}
+                                    {% set difference = date(event.date).diff(date()) %}
+                                    {% if difference.days > 0 %}
+                                        {{ difference.days }} day{{ difference.days > 1 ? 's' : '' }} from now
+                                    {% elseif difference.h > 0 %}
+                                        {{ difference.h }} hour{{ difference.h > 1 ? 's' : '' }} from now
+                                    {% elseif difference.i > 0 %}
+                                        {{ difference.i }} minute{{ difference.i > 1 ? 's' : '' }} from now
+                                    {% else %}
+                                        Starting soon
+                                    {% endif %}
+                                {% else %}
+                                    Event ended
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination with 4 events per page -->
+                {% if totalPages > 1 %}
+                    <div class="pagination-section">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination">
+                                {# Previous page link #}
+                                <li class="page-item {{ currentPage == 1 ? 'disabled' : '' }}">
+                                    <a class="page-link" href="{{ path('app_events_list', {
+                                        'page': currentPage - 1,
+                                        'filter': app.request.get('filter'),
+                                        'search': app.request.get('search')
+                                    }) }}" tabindex="-1">
+                                        <i class="bi bi-chevron-left"></i>
+                                        Previous
+                                    </a>
+                                </li>
+
+                                {# Page numbers #}
+                                {% for i in 1..totalPages %}
+                                    <li class="page-item {{ currentPage == i ? 'active' : '' }}">
+                                        <a class="page-link" href="{{ path('app_events_list', {
+                                            'page': i,
+                                            'filter': app.request.get('filter'),
+                                            'search': app.request.get('search')
+                                        }) }}">{{ i }}</a>
+                                    </li>
+                                {% endfor %}
+
+                                {# Next page link #}
+                                <li class="page-item {{ currentPage == totalPages ? 'disabled' : '' }}">
+                                    <a class="page-link" href="{{ path('app_events_list', {
+                                        'page': currentPage + 1,
+                                        'filter': app.request.get('filter'),
+                                        'search': app.request.get('search')
+                                    }) }}">
+                                        Next
+                                        <i class="bi bi-chevron-right ms-1"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                        
+                        {# Results info #}
+                        <div class="results-info">
+                            Showing {{ (currentPage - 1) * 4 + 1 }} - {{ min(currentPage * 4, totalEvents) }} of {{ totalEvents }} events
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
