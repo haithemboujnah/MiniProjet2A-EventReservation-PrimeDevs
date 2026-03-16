@@ -1,0 +1,244 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Reserve - {{ event.title }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/reserve.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="reserve-page">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-10 col-lg-8">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ path('app_home') }}"><i class="bi bi-house me-1"></i>Home</a></li>
+                            <li class="breadcrumb-item"><a href="{{ path('app_events_list') }}">Events</a></li>
+                            <li class="breadcrumb-item"><a href="{{ path('app_event_show', {'id': event.id}) }}">{{ event.title|slice(0, 20) ~ '...' }}</a></li>
+                            <li class="breadcrumb-item active">Reserve</li>
+                        </ol>
+                    </nav>
+
+                    <div class="reserve-card">
+                        <div class="reserve-header">
+                            <h4 class="mb-0">
+                                <i class="bi bi-ticket-perforated"></i>
+                                Reserve Your Spot
+                            </h4>
+                        </div>
+                        
+                        <div class="reserve-body">
+                            <div class="event-info-alert">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>{{ event.title }}</strong><br>
+                                <small>
+                                    <i class="bi bi-calendar"></i> {{ event.date|date('F j, Y - g:i a') }}<br>
+                                    <i class="bi bi-geo-alt"></i> {{ event.location }}
+                                </small>
+                            </div>
+
+                            {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'reservation-form'}}) }}
+                                
+                                <div class="form-group-custom">
+                                    {{ form_label(form.name, null, {'label_attr': {'class': 'form-label'}}) }}
+                                    <div class="input-wrapper">
+                                        <i class="bi bi-person input-icon"></i>
+                                        {{ form_widget(form.name, {
+                                            'attr': {
+                                                'class': 'form-control',
+                                                'placeholder': 'Enter your full name',
+                                                'data-tooltip': 'Enter your full name as it appears on ID'
+                                            }
+                                        }) }}
+                                        <span class="field-tooltip" data-tooltip="Your full name for reservation">ⓘ</span>
+                                    </div>
+                                    {% if form_errors(form.name) %}
+                                        <div class="invalid-feedback">
+                                            <i class="bi bi-exclamation-circle"></i>
+                                            {{ form_errors(form.name) }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="form-group-custom">
+                                    {{ form_label(form.email, null, {'label_attr': {'class': 'form-label'}}) }}
+                                    <div class="input-wrapper">
+                                        <i class="bi bi-envelope input-icon"></i>
+                                        {{ form_widget(form.email, {
+                                            'attr': {
+                                                'class': 'form-control',
+                                                'placeholder': 'Enter your email address',
+                                                'data-tooltip': 'We will send confirmation to this email'
+                                            }
+                                        }) }}
+                                        <span class="field-tooltip" data-tooltip="Confirmation will be sent here">ⓘ</span>
+                                    </div>
+                                    {% if form_errors(form.email) %}
+                                        <div class="invalid-feedback">
+                                            <i class="bi bi-exclamation-circle"></i>
+                                            {{ form_errors(form.email) }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="form-group-custom">
+                                    {{ form_label(form.phone, null, {'label_attr': {'class': 'form-label'}}) }}
+                                    <div class="input-wrapper">
+                                        <i class="bi bi-phone input-icon"></i>
+                                        {{ form_widget(form.phone, {
+                                            'attr': {
+                                                'class': 'form-control',
+                                                'placeholder': 'Enter your phone number',
+                                                'data-tooltip': 'For urgent contact if needed'
+                                            }
+                                        }) }}
+                                        <span class="field-tooltip" data-tooltip="Contact number for updates">ⓘ</span>
+                                    </div>
+                                    {% if form_errors(form.phone) %}
+                                        <div class="invalid-feedback">
+                                            <i class="bi bi-exclamation-circle"></i>
+                                            {{ form_errors(form.phone) }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="button-container">
+                                    <button type="submit" class="btn-confirm" id="submitBtn">
+                                        <i class="bi bi-check-circle"></i>
+                                        Confirm Reservation
+                                    </button>
+                                    <a href="{{ path('app_event_show', {'id': event.id}) }}" class="btn-cancel">
+                                        <i class="bi bi-x-circle"></i>
+                                        Cancel
+                                    </a>
+                                </div>
+                            {{ form_end(form) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Form validation and loading state
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('.reservation-form');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            // Add real-time validation
+            const inputs = document.querySelectorAll('.form-control');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    validateField(this);
+                });
+                
+                input.addEventListener('blur', function() {
+                    validateField(this);
+                });
+            });
+            
+            function validateField(field) {
+                const wrapper = field.closest('.form-group-custom');
+                const feedback = wrapper.querySelector('.invalid-feedback');
+                
+                if (field.value.trim() === '') {
+                    field.classList.add('is-invalid');
+                    field.classList.remove('is-valid');
+                } else {
+                    // Email validation
+                    if (field.type === 'email') {
+                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        if (emailRegex.test(field.value)) {
+                            field.classList.add('is-valid');
+                            field.classList.remove('is-invalid');
+                        } else {
+                            field.classList.add('is-invalid');
+                            field.classList.remove('is-valid');
+                        }
+                    }
+                    // Phone validation (basic)
+                    else if (field.type === 'tel') {
+                        const phoneRegex = /^[\d\s\-+()]{10,}$/;
+                        if (phoneRegex.test(field.value.replace(/\s/g, ''))) {
+                            field.classList.add('is-valid');
+                            field.classList.remove('is-invalid');
+                        } else {
+                            field.classList.add('is-invalid');
+                            field.classList.remove('is-valid');
+                        }
+                    }
+                    // Name validation
+                    else if (field.placeholder.includes('name')) {
+                        if (field.value.length >= 2) {
+                            field.classList.add('is-valid');
+                            field.classList.remove('is-invalid');
+                        } else {
+                            field.classList.add('is-invalid');
+                            field.classList.remove('is-valid');
+                        }
+                    }
+                }
+            }
+            
+            // Form submission
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+                inputs.forEach(input => {
+                    validateField(input);
+                    if (input.classList.contains('is-invalid')) {
+                        isValid = false;
+                    }
+                });
+                
+                if (!isValid) {
+                    e.preventDefault();
+                    
+                    // Shake invalid fields
+                    document.querySelectorAll('.is-invalid').forEach(field => {
+                        field.style.animation = 'shake 0.3s ease';
+                        setTimeout(() => {
+                            field.style.animation = '';
+                        }, 300);
+                    });
+                } else {
+                    // Show loading state
+                    submitBtn.classList.add('loading');
+                    submitBtn.disabled = true;
+                }
+            });
+            
+            // Tooltips
+            const tooltips = document.querySelectorAll('.field-tooltip');
+            tooltips.forEach(tooltip => {
+                tooltip.addEventListener('mouseenter', function() {
+                    const text = this.getAttribute('data-tooltip');
+                    // You can implement a custom tooltip here
+                });
+            });
+            
+            // Phone number formatting
+            const phoneInput = document.querySelector('input[type="tel"]');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function(e) {
+                    let value = this.value.replace(/\D/g, '');
+                    if (value.length > 0) {
+                        if (value.length <= 3) {
+                            value = value;
+                        } else if (value.length <= 6) {
+                            value = value.slice(0, 3) + '-' + value.slice(3);
+                        } else {
+                            value = value.slice(0, 3) + '-' + value.slice(3, 6) + '-' + value.slice(6, 10);
+                        }
+                        this.value = value;
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

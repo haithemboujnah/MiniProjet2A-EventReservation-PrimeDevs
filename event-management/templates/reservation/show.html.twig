@@ -1,0 +1,215 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Reservation #{{ reservation.id }} - EventBooking{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/reservation-show.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="reservation-detail-page">
+        <div class="container">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_my_reservations') }}">My Reservations</a></li>
+                    <li class="breadcrumb-item active">Reservation #{{ reservation.id }}</li>
+                </ol>
+            </nav>
+
+            <!-- Main Content -->
+            <div class="reservation-detail-card">
+                <div class="reservation-header">
+                    <div class="header-content">
+                        <h1>
+                            <i class="bi bi-ticket-perforated"></i>
+                            Reservation Details
+                        </h1>
+                        <span class="reservation-id">#{{ reservation.id }}</span>
+                    </div>
+                    <div class="header-status">
+                        {% if reservation.event.date > date() %}
+                            <span class="status-badge upcoming">
+                                <i class="bi bi-sun"></i>
+                                Upcoming Event
+                            </span>
+                        {% else %}
+                            <span class="status-badge past">
+                                <i class="bi bi-clock-history"></i>
+                                Past Event
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="reservation-body">
+                    <div class="row">
+                        <!-- Event Image -->
+                        <div class="col-lg-5">
+                            <div class="event-image">
+                                {% if reservation.event.imageUrl %}
+                                    <img src="{{ reservation.event.imageUrl }}" alt="{{ reservation.event.title }}">
+                                {% else %}
+                                    <div class="no-image">
+                                        <i class="bi bi-calendar-event"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Reservation Info -->
+                        <div class="col-lg-7">
+                            <div class="event-info">
+                                <h2 class="event-title">{{ reservation.event.title }}</h2>
+                                
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="bi bi-calendar"></i>
+                                        </div>
+                                        <div class="info-content">
+                                            <span class="info-label">Date</span>
+                                            <span class="info-value">{{ reservation.event.date|date('l, F j, Y') }}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="bi bi-clock"></i>
+                                        </div>
+                                        <div class="info-content">
+                                            <span class="info-label">Time</span>
+                                            <span class="info-value">{{ reservation.event.date|date('g:i A') }}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="bi bi-geo-alt"></i>
+                                        </div>
+                                        <div class="info-content">
+                                            <span class="info-label">Location</span>
+                                            <span class="info-value">{{ reservation.event.location }}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="bi bi-people"></i>
+                                        </div>
+                                        <div class="info-content">
+                                            <span class="info-label">Available Seats</span>
+                                            <span class="info-value">{{ reservation.event.availableSeats }} / {{ reservation.event.seats }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Booking Details -->
+                    <div class="booking-details">
+                        <h3 class="section-title">
+                            <i class="bi bi-person"></i>
+                            Booking Information
+                        </h3>
+                        
+                        <div class="booking-grid">
+                            <div class="booking-item">
+                                <span class="item-label">Full Name</span>
+                                <span class="item-value">{{ reservation.name }}</span>
+                            </div>
+                            
+                            <div class="booking-item">
+                                <span class="item-label">Email Address</span>
+                                <span class="item-value">{{ reservation.email }}</span>
+                            </div>
+                            
+                            <div class="booking-item">
+                                <span class="item-label">Phone Number</span>
+                                <span class="item-value">{{ reservation.phone }}</span>
+                            </div>
+                            
+                            <div class="booking-item">
+                                <span class="item-label">Booking Date</span>
+                                <span class="item-value">{{ reservation.createdAt|date('F j, Y - g:i A') }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Event Description -->
+                    <div class="event-description">
+                        <h3 class="section-title">
+                            <i class="bi bi-info-circle"></i>
+                            About the Event
+                        </h3>
+                        <p>{{ reservation.event.description|nl2br }}</p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <a href="{{ path('app_event_show', {'id': reservation.event.id}) }}" class="btn-view-event">
+                            <i class="bi bi-eye"></i>
+                            View Event Page
+                        </a>
+                        
+                        {% if reservation.event.date > date() %}
+                            <button type="button" class="btn-cancel" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                                <i class="bi bi-x-circle"></i>
+                                Cancel Reservation
+                            </button>
+                        {% endif %}
+                        
+                        <a href="{{ path('app_my_reservations') }}" class="btn-back">
+                            <i class="bi bi-arrow-left"></i>
+                            Back to Reservations
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Modal -->
+    {% if reservation.event.date > date() %}
+        <div class="modal fade" id="cancelModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                            Cancel Reservation
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to cancel your reservation for:</p>
+                        <p class="fw-bold">{{ reservation.event.title }}</p>
+                        <p class="text-muted">
+                            <i class="bi bi-calendar me-2"></i>{{ reservation.event.date|date('F j, Y - g:i A') }}
+                        </p>
+                        <p class="text-danger small mt-3">
+                            <i class="bi bi-info-circle me-1"></i>
+                            This action cannot be undone.
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x me-2"></i>
+                            Close
+                        </button>
+                        <form method="post" action="{{ path('app_reservation_cancel', {'id': reservation.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ reservation.id) }}">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-check-circle me-2"></i>
+                                Confirm Cancel
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
