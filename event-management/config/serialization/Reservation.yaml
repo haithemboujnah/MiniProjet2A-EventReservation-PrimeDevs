@@ -1,0 +1,15 @@
+App\Entity\Reservation:
+    attributes:
+        id:
+            groups: ['reservation:read']
+        name:
+            groups: ['reservation:read']
+        email:
+            groups: ['reservation:read']
+        phone:
+            groups: ['reservation:read']
+        createdAt:
+            groups: ['reservation:read']
+            serialized_name: created_at
+        event:
+            groups: ['reservation:read']

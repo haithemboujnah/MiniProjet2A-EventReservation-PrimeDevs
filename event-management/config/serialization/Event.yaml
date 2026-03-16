@@ -1,0 +1,19 @@
+App\Entity\Event:
+    attributes:
+        id:
+            groups: ['event:read']
+        title:
+            groups: ['event:read']
+        description:
+            groups: ['event:read']
+        date:
+            groups: ['event:read']
+        location:
+            groups: ['event:read']
+        seats:
+            groups: ['event:read']
+        image:
+            groups: ['event:read']
+        availableSeats:
+            groups: ['event:read']
+            serialized_name: available_seats

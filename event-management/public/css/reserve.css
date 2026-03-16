@@ -1,0 +1,699 @@
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --primary-color: #667eea;
+    --secondary-color: #764ba2;
+    --success-color: #48bb78;
+    --danger-color: #f56565;
+    --warning-color: #ecc94b;
+    --info-color: #4299e1;
+    --dark-color: #2d3748;
+    --light-color: #f7fafc;
+    --gray-100: #f7fafc;
+    --gray-200: #edf2f7;
+    --gray-300: #e2e8f0;
+    --gray-400: #cbd5e0;
+    --gray-500: #a0aec0;
+    --gray-600: #718096;
+    --gray-700: #4a5568;
+    --gray-800: #2d3748;
+    --gray-900: #1a202c;
+}
+
+.reserve-page {
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    position: relative;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+/* Background decoration */
+.reserve-page::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 10% 20%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 90% 80%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+/* Breadcrumb styling */
+.breadcrumb {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    padding: 1rem 1.5rem;
+    border-radius: 50px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: slideDown 0.5s ease;
+}
+
+.breadcrumb-item {
+    font-size: 0.95rem;
+}
+
+.breadcrumb-item a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    padding: 0.25rem 0;
+}
+
+.breadcrumb-item a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary-gradient);
+    transition: width 0.3s ease;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--secondary-color);
+}
+
+.breadcrumb-item a:hover::after {
+    width: 100%;
+}
+
+.breadcrumb-item.active {
+    color: var(--gray-600);
+    font-weight: 600;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    color: var(--gray-400);
+    content: "→";
+}
+
+/* Main card styling */
+.reserve-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: none;
+    border-radius: 24px;
+    box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.25),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    animation: slideUp 0.6s ease-out;
+    position: relative;
+}
+
+/* Card shine effect */
+.reserve-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    transition: left 0.5s ease;
+}
+
+.reserve-card:hover::after {
+    left: 100%;
+}
+
+/* Card header */
+.reserve-header {
+    background: var(--primary-gradient);
+    padding: 1.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.reserve-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') bottom no-repeat;
+    background-size: cover;
+    opacity: 0.1;
+}
+
+.reserve-header h4 {
+    color: white;
+    font-weight: 700;
+    font-size: 1.5rem;
+    position: relative;
+    animation: fadeInRight 0.6s ease;
+}
+
+.reserve-header h4 i {
+    margin-right: 0.75rem;
+    animation: pulse 2s infinite;
+}
+
+/* Card body */
+.reserve-body {
+    padding: 2rem;
+    position: relative;
+}
+
+/* Event info alert */
+.event-info-alert {
+    background: linear-gradient(135deg, #ebf4ff 0%, #e6f0ff 100%);
+    border: none;
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    animation: slideInLeft 0.5s ease;
+    border-left: 4px solid var(--primary-color);
+}
+
+.event-info-alert i {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+
+.event-info-alert strong {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+
+.event-info-alert small {
+    display: block;
+    margin-top: 0.5rem;
+    color: var(--gray-600);
+    padding-left: 1.6rem;
+}
+
+.event-info-alert small i {
+    font-size: 0.9rem;
+    margin-right: 0.25rem;
+}
+
+/* Form groups */
+.form-group-custom {
+    margin-bottom: 1.5rem;
+    position: relative;
+    animation: fadeInUp 0.5s ease;
+    animation-fill-mode: both;
+}
+
+.form-group-custom:nth-child(1) { animation-delay: 0.1s; }
+.form-group-custom:nth-child(2) { animation-delay: 0.2s; }
+.form-group-custom:nth-child(3) { animation-delay: 0.3s; }
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--gray-700);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.form-label i {
+    color: var(--primary-color);
+    margin-right: 0.5rem;
+}
+
+/* Input wrapper for icon and field */
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 1rem;
+    color: var(--gray-500);
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.875rem 1rem 0.875rem 2.8rem;
+    border: 2px solid var(--gray-300);
+    border-radius: 12px;
+    font-size: 1rem;
+    color: var(--gray-800);
+    background: white;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-control:focus + .input-icon {
+    color: var(--primary-color);
+}
+
+.form-control::placeholder {
+    color: var(--gray-400);
+    font-size: 0.95rem;
+}
+
+/* Validation styles */
+.form-control.is-invalid {
+    border-color: var(--danger-color);
+    background-image: none;
+}
+
+.form-control.is-invalid:focus {
+    box-shadow: 0 0 0 3px rgba(245, 101, 101, 0.1);
+}
+
+.form-control.is-invalid ~ .input-icon {
+    color: var(--danger-color);
+}
+
+.form-control.is-valid {
+    border-color: var(--success-color);
+}
+
+.form-control.is-valid:focus {
+    box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.1);
+}
+
+.form-control.is-valid ~ .input-icon {
+    color: var(--success-color);
+}
+
+/* Error messages */
+.invalid-feedback {
+    display: block;
+    color: var(--danger-color);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    padding-left: 0.5rem;
+    animation: shake 0.3s ease;
+}
+
+.invalid-feedback i {
+    margin-right: 0.25rem;
+}
+
+/* Success message styling */
+.valid-feedback {
+    display: block;
+    color: var(--success-color);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    padding-left: 0.5rem;
+}
+
+/* Button container */
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+    animation: fadeInUp 0.5s ease 0.4s both;
+}
+
+/* Submit button */
+.btn-confirm {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-confirm::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.5s ease, height 0.5s ease;
+}
+
+.btn-confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.btn-confirm:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-confirm:active {
+    transform: translateY(0);
+}
+
+.btn-confirm i {
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+}
+
+.btn-confirm:hover i {
+    transform: scale(1.1);
+}
+
+/* Cancel button */
+.btn-cancel {
+    background: transparent;
+    color: var(--gray-600);
+    border: 2px solid var(--gray-300);
+    border-radius: 12px;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-cancel:hover {
+    background: var(--gray-100);
+    color: var(--gray-800);
+    border-color: var(--gray-400);
+    transform: translateY(-2px);
+}
+
+.btn-cancel i {
+    transition: transform 0.3s ease;
+}
+
+.btn-cancel:hover i {
+    transform: translateX(-3px);
+}
+
+/* Loading state for button */
+.btn-confirm.loading {
+    pointer-events: none;
+    opacity: 0.8;
+    color: transparent;
+}
+
+.btn-confirm.loading::after {
+    content: '';
+    position: absolute;
+    width: 1.5rem;
+    height: 1.5rem;
+    top: 50%;
+    left: 50%;
+    margin-left: -0.75rem;
+    margin-top: -0.75rem;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.btn-confirm.loading i {
+    display: none;
+}
+
+/* Animations */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+/* Responsive design */
+@media (min-width: 768px) {
+    .reserve-page {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .button-container {
+        flex-direction: row;
+    }
+    
+    .btn-confirm, .btn-cancel {
+        flex: 1;
+    }
+}
+
+@media (max-width: 767px) {
+    .reserve-page {
+        padding: 1rem;
+    }
+    
+    .breadcrumb {
+        padding: 0.75rem 1rem;
+        border-radius: 30px;
+        font-size: 0.85rem;
+    }
+    
+    .reserve-header {
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .reserve-header h4 {
+        font-size: 1.25rem;
+    }
+    
+    .reserve-body {
+        padding: 1.5rem;
+    }
+    
+    .event-info-alert {
+        padding: 1rem 1.25rem;
+    }
+    
+    .form-control {
+        padding: 0.75rem 1rem 0.75rem 2.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .reserve-card {
+        border-radius: 20px;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        padding: 0 0.25rem;
+    }
+    
+    .btn-confirm, .btn-cancel {
+        padding: 0.875rem;
+    }
+}
+
+/* Additional hover effects */
+.form-group-custom:hover .form-label {
+    color: var(--primary-color);
+    transform: translateX(5px);
+}
+
+.form-group-custom:hover .input-icon {
+    color: var(--primary-color);
+}
+
+/* Focus within effect */
+.form-group-custom:focus-within .form-label {
+    color: var(--primary-color);
+}
+
+.form-group-custom:focus-within .input-icon {
+    color: var(--primary-color);
+}
+
+/* Ticket icon animation in header */
+.reserve-header h4 i {
+    animation: ticketPulse 2s infinite;
+}
+
+@keyframes ticketPulse {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: rotate(5deg);
+    }
+    20%, 40%, 60%, 80% {
+        transform: rotate(-5deg);
+    }
+}
+
+/* Success state for form fields */
+.form-control.is-valid ~ .input-icon {
+    animation: validPop 0.3s ease;
+}
+
+@keyframes validPop {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Ripple effect on form fields */
+.form-control {
+    position: relative;
+    z-index: 1;
+}
+
+.form-control::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(102, 126, 234, 0.1);
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease;
+    z-index: -1;
+}
+
+.form-control:focus::before {
+    width: 200px;
+    height: 200px;
+}
+
+/* Tooltip styling */
+.field-tooltip {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-400);
+    cursor: help;
+    transition: all 0.3s ease;
+}
+
+.field-tooltip:hover {
+    color: var(--primary-color);
+}
+
+.field-tooltip:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    background: var(--dark-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    z-index: 1000;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.3s ease;
+}
