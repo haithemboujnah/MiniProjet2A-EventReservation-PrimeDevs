@@ -44,6 +44,13 @@ class Event
     #[Assert\Length(max: 500)]
     private ?string $imageUrl = null;
 
+    #[ORM\OneToMany(mappedBy: 'event', targetEntity: Reservation::class, orphanRemoval: true)]
+    private Collection $reservations;
+
+    public function __construct()
+    {
+        $this->reservations = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -116,6 +123,37 @@ class Event
         return $this;
     }
 
+    /**
+     * @return Collection<int, Reservation>
+     */
+    public function getReservations(): Collection
+    {
+        return $this->reservations;
+    }
+
+    public function addReservation(Reservation $reservation): static
+    {
+        if (!$this->reservations->contains($reservation)) {
+            $this->reservations->add($reservation);
+            $reservation->setEvent($this);
+        }
+        return $this;
+    }
+
+    public function removeReservation(Reservation $reservation): static
+    {
+        if ($this->reservations->removeElement($reservation)) {
+            if ($reservation->getEvent() === $this) {
+                $reservation->setEvent(null);
+            }
+        }
+        return $this;
+    }
+
+    public function getAvailableSeats(): int
+    {
+        return $this->seats - $this->reservations->count();
+    }
 
     // Helper method to check if image URL is valid
     public function hasValidImageUrl(): bool

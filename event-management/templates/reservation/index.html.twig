@@ -1,0 +1,331 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Reservations - EventBooking{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/reservations.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="reservations-page">
+        <div class="reservations-header">
+            <div class="container">
+                <h1 class="page-title">
+                    <i class="bi bi-ticket-perforated"></i>
+                    My Reservations
+                </h1>
+                <p class="page-subtitle">Manage your event bookings and reservations</p>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon bg-primary">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-value">{{ upcomingReservations|length }}</span>
+                        <span class="stat-label">Upcoming Events</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon bg-success">
+                        <i class="bi bi-calendar-check-fill"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-value">{{ pastReservations|length }}</span>
+                        <span class="stat-label">Past Events</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon bg-info">
+                        <i class="bi bi-ticket"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-value">{{ upcomingReservations|length + pastReservations|length }}</span>
+                        <span class="stat-label">Total Reservations</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="reservations-tabs">
+                <ul class="nav nav-tabs" id="reservationTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="upcoming-tab" data-bs-toggle="tab" 
+                                data-bs-target="#upcoming" type="button" role="tab">
+                            <i class="bi bi-sun me-2"></i>
+                            Upcoming Events
+                            {% if upcomingReservations|length > 0 %}
+                                <span class="badge bg-primary ms-2">{{ upcomingReservations|length }}</span>
+                            {% endif %}
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="past-tab" data-bs-toggle="tab" 
+                                data-bs-target="#past" type="button" role="tab">
+                            <i class="bi bi-clock-history me-2"></i>
+                            Past Events
+                            {% if pastReservations|length > 0 %}
+                                <span class="badge bg-secondary ms-2">{{ pastReservations|length }}</span>
+                            {% endif %}
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="reservationTabsContent">
+                    <!-- Upcoming Reservations Tab -->
+                    <div class="tab-pane fade show active" id="upcoming" role="tabpanel">
+                        {% if upcomingReservations is empty %}
+                            <div class="empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="bi bi-calendar-x"></i>
+                                </div>
+                                <h3>No Upcoming Reservations</h3>
+                                <p>You haven't booked any upcoming events yet.</p>
+                                <a href="{{ path('app_events_list') }}" class="btn btn-primary">
+                                    <i class="bi bi-search me-2"></i>
+                                    Browse Events
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="reservations-grid">
+                                {% for reservation in upcomingReservations %}
+                                    <div class="reservation-card upcoming" data-aos="fade-up">
+                                        <div class="reservation-status">
+                                            <span class="status-badge upcoming">
+                                                <i class="bi bi-sun"></i>
+                                                Upcoming
+                                            </span>
+                                            <span class="reservation-id">#{{ reservation.id }}</span>
+                                        </div>
+                                        
+                                        <div class="reservation-content">
+                                            <div class="reservation-image">
+                                                {% if reservation.event.imageUrl %}
+                                                    <img src="{{ reservation.event.imageUrl }}" alt="{{ reservation.event.title }}">
+                                                {% else %}
+                                                    <div class="no-image">
+                                                        <i class="bi bi-calendar-event"></i>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div class="reservation-details">
+                                                <h3 class="event-title">
+                                                    <a href="{{ path('app_event_show', {'id': reservation.event.id}) }}">
+                                                        {{ reservation.event.title }}
+                                                    </a>
+                                                </h3>
+                                                
+                                                <div class="event-meta">
+                                                    <div class="meta-item">
+                                                        <i class="bi bi-calendar"></i>
+                                                        <span>{{ reservation.event.date|date('F j, Y') }}</span>
+                                                    </div>
+                                                    <div class="meta-item">
+                                                        <i class="bi bi-clock"></i>
+                                                        <span>{{ reservation.event.date|date('g:i A') }}</span>
+                                                    </div>
+                                                    <div class="meta-item">
+                                                        <i class="bi bi-geo-alt"></i>
+                                                        <span>{{ reservation.event.location }}</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="reservation-info">
+                                                    <div class="info-item">
+                                                        <span class="info-label">Booked on:</span>
+                                                        <span class="info-value">{{ reservation.createdAt|date('M d, Y') }}</span>
+                                                    </div>
+                                                    <div class="info-item">
+                                                        <span class="info-label">Contact:</span>
+                                                        <span class="info-value">{{ reservation.email }}</span>
+                                                    </div>
+                                                    <div class="info-item">
+                                                        <span class="info-label">Phone:</span>
+                                                        <span class="info-value">{{ reservation.phone }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="reservation-actions">
+                                            <a href="{{ path('app_event_show', {'id': reservation.event.id}) }}" 
+                                               class="btn-view">
+                                                <i class="bi bi-eye"></i>
+                                                View Event
+                                            </a>
+                                            <button type="button" class="btn-cancel" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#cancelModal{{ reservation.id }}">
+                                                <i class="bi bi-x-circle"></i>
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Cancel Modal -->
+                                    <div class="modal fade" id="cancelModal{{ reservation.id }}" tabindex="-1">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">
+                                                        <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                                                        Cancel Reservation
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Are you sure you want to cancel your reservation for:</p>
+                                                    <p class="fw-bold">{{ reservation.event.title }}</p>
+                                                    <p class="text-muted">
+                                                        <i class="bi bi-calendar me-2"></i>{{ reservation.event.date|date('F j, Y - g:i A') }}
+                                                    </p>
+                                                    <p class="text-danger small mt-3">
+                                                        <i class="bi bi-info-circle me-1"></i>
+                                                        This action cannot be undone.
+                                                    </p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                        <i class="bi bi-x me-2"></i>
+                                                        Close
+                                                    </button>
+                                                    <form method="post" action="{{ path('app_reservation_cancel', {'id': reservation.id}) }}" 
+                                                          style="display: inline-block;">
+                                                        <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ reservation.id) }}">
+                                                        <button type="submit" class="btn btn-danger">
+                                                            <i class="bi bi-check-circle me-2"></i>
+                                                            Confirm Cancel
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Past Reservations Tab -->
+                    <div class="tab-pane fade" id="past" role="tabpanel">
+                        {% if pastReservations is empty %}
+                            <div class="empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="bi bi-calendar-check"></i>
+                                </div>
+                                <h3>No Past Reservations</h3>
+                                <p>You haven't attended any events yet.</p>
+                                <a href="{{ path('app_events_list') }}" class="btn btn-primary">
+                                    <i class="bi bi-search me-2"></i>
+                                    Browse Events
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="reservations-grid">
+                                {% for reservation in pastReservations %}
+                                    <div class="reservation-card past" data-aos="fade-up">
+                                        <div class="reservation-status">
+                                            <span class="status-badge past">
+                                                <i class="bi bi-clock-history"></i>
+                                                Past Event
+                                            </span>
+                                            <span class="reservation-id">#{{ reservation.id }}</span>
+                                        </div>
+                                        
+                                        <div class="reservation-content">
+                                            <div class="reservation-image">
+                                                {% if reservation.event.imageUrl %}
+                                                    <img src="{{ reservation.event.imageUrl }}" alt="{{ reservation.event.title }}">
+                                                {% else %}
+                                                    <div class="no-image">
+                                                        <i class="bi bi-calendar-event"></i>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div class="reservation-details">
+                                                <h3 class="event-title">
+                                                    <a href="{{ path('app_event_show', {'id': reservation.event.id}) }}">
+                                                        {{ reservation.event.title }}
+                                                    </a>
+                                                </h3>
+                                                
+                                                <div class="event-meta">
+                                                    <div class="meta-item">
+                                                        <i class="bi bi-calendar"></i>
+                                                        <span>{{ reservation.event.date|date('F j, Y') }}</span>
+                                                    </div>
+                                                    <div class="meta-item">
+                                                        <i class="bi bi-clock"></i>
+                                                        <span>{{ reservation.event.date|date('g:i A') }}</span>
+                                                    </div>
+                                                    <div class="meta-item">
+                                                        <i class="bi bi-geo-alt"></i>
+                                                        <span>{{ reservation.event.location }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="reservation-actions">
+                                            <a href="{{ path('app_event_show', {'id': reservation.event.id}) }}" 
+                                               class="btn-view">
+                                                <i class="bi bi-eye"></i>
+                                                View Event
+                                            </a>
+                                            <span class="attended-badge">
+                                                <i class="bi bi-check-circle-fill"></i>
+                                                Attended
+                                            </span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Initialize AOS (Animate On Scroll)
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+
+        // Remember last active tab
+        document.addEventListener('DOMContentLoaded', function() {
+            const activeTab = localStorage.getItem('activeReservationTab');
+            if (activeTab) {
+                const tab = document.querySelector(`button[data-bs-target="${activeTab}"]`);
+                if (tab) {
+                    const tabInstance = new bootstrap.Tab(tab);
+                    tabInstance.show();
+                }
+            }
+
+            // Save active tab
+            const tabs = document.querySelectorAll('button[data-bs-toggle="tab"]');
+            tabs.forEach(tab => {
+                tab.addEventListener('shown.bs.tab', function(e) {
+                    localStorage.setItem('activeReservationTab', e.target.getAttribute('data-bs-target'));
+                });
+            });
+        });
+    </script>
+{% endblock %}

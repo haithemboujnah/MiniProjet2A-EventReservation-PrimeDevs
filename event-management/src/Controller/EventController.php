@@ -81,4 +81,39 @@ class EventController extends AbstractController
         ]);
     }
 
+    #[Route('/event/{id}/reserve', name: 'app_event_reserve')]
+    public function reserve(Request $request, Event $event, EntityManagerInterface $entityManager): Response
+    {
+        if ($event->getAvailableSeats() <= 0) {
+            $this->addFlash('error', 'No available seats for this event.');
+            return $this->redirectToRoute('app_event_show', ['id' => $event->getId()]);
+        }
+
+        $reservation = new Reservation();
+        $reservation->setEvent($event);
+
+        $form = $this->createForm(ReservationType::class, $reservation);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($reservation);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Your reservation has been confirmed!');
+            return $this->redirectToRoute('app_reservation_confirmation', ['id' => $reservation->getId()]);
+        }
+
+        return $this->render('event/reserve.html.twig', [
+            'event' => $event,
+            'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/reservation/{id}/confirmation', name: 'app_reservation_confirmation')]
+    public function confirmation(Reservation $reservation): Response
+    {
+        return $this->render('event/confirmation.html.twig', [
+            'reservation' => $reservation,
+        ]);
+    }
 }

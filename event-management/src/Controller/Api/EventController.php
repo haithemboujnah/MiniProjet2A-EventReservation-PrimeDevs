@@ -34,4 +34,39 @@ class EventController extends AbstractController
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
+    #[Route('/{id}/reserve', name: 'reserve', methods: ['POST'])]
+    public function reserve(
+        Event $event,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        SerializerInterface $serializer,
+        ValidatorInterface $validator
+    ): JsonResponse {
+        if ($event->getAvailableSeats() <= 0) {
+            return $this->json(['error' => 'No available seats'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        $reservation = new Reservation();
+        $reservation->setEvent($event);
+        $reservation->setName($data['name'] ?? '');
+        $reservation->setEmail($data['email'] ?? '');
+        $reservation->setPhone($data['phone'] ?? '');
+
+        $errors = $validator->validate($reservation);
+        if (count($errors) > 0) {
+            $errorMessages = [];
+            foreach ($errors as $error) {
+                $errorMessages[] = $error->getMessage();
+            }
+            return $this->json(['errors' => $errorMessages], Response::HTTP_BAD_REQUEST);
+        }
+
+        $entityManager->persist($reservation);
+        $entityManager->flush();
+
+        $data = $serializer->serialize($reservation, 'json', ['groups' => 'reservation:read']);
+        return new JsonResponse($data, Response::HTTP_CREATED, [], true);
+    }
 }
