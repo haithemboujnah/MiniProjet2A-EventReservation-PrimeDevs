@@ -1,0 +1,384 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Register - EventBooking{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/register.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-10 col-lg-8 col-xl-7">
+                    <div class="register-card">
+                        <div class="register-header">
+                            <h2>
+                                <i class="bi bi-person-plus me-2"></i>
+                                Create Account
+                            </h2>
+                            <p>Join us to book amazing events</p>
+                        </div>
+                        
+                        <div class="register-body">
+                            {% for message in app.flashes('error') %}
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+
+                            {{ form_start(registrationForm, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                                
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="input-group-custom">
+                                            {{ form_label(registrationForm.fullName, null, {'label_attr': {'class': 'form-label'}}) }}
+                                            <div class="input-group">
+                                                <span class="input-group-text">
+                                                    <i class="bi bi-person"></i>
+                                                </span>
+                                                {{ form_widget(registrationForm.fullName, {
+                                                    'attr': {
+                                                        'class': 'form-control',
+                                                        'placeholder': 'Enter your full name'
+                                                    }
+                                                }) }}
+                                            </div>
+                                            <div class="invalid-feedback">
+                                                {{ form_errors(registrationForm.fullName) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="input-group-custom">
+                                    {{ form_label(registrationForm.email, null, {'label_attr': {'class': 'form-label'}}) }}
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-envelope"></i>
+                                        </span>
+                                        {{ form_widget(registrationForm.email, {
+                                            'attr': {
+                                                'class': 'form-control',
+                                                'placeholder': 'Enter your email'
+                                            }
+                                        }) }}
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        {{ form_errors(registrationForm.email) }}
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="input-group-custom">
+                                            {{ form_label(registrationForm.plainPassword.first, 'Password', {'label_attr': {'class': 'form-label'}}) }}
+                                            <div class="input-group">
+                                                <span class="input-group-text">
+                                                    <i class="bi bi-lock"></i>
+                                                </span>
+                                                {{ form_widget(registrationForm.plainPassword.first, {
+                                                    'attr': {
+                                                        'class': 'form-control',
+                                                        'placeholder': 'Enter password',
+                                                        'id': 'password_first'
+                                                    }
+                                                }) }}
+                                                <button type="button" class="toggle-password" id="togglePassword1" tabindex="-1">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                            </div>
+                                            <div class="invalid-feedback">
+                                                {{ form_errors(registrationForm.plainPassword.first) }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="input-group-custom">
+                                            {{ form_label(registrationForm.plainPassword.second, 'Confirm Password', {'label_attr': {'class': 'form-label'}}) }}
+                                            <div class="input-group">
+                                                <span class="input-group-text">
+                                                    <i class="bi bi-lock-fill"></i>
+                                                </span>
+                                                {{ form_widget(registrationForm.plainPassword.second, {
+                                                    'attr': {
+                                                        'class': 'form-control',
+                                                        'placeholder': 'Confirm password',
+                                                        'id': 'password_second'
+                                                    }
+                                                }) }}
+                                                <button type="button" class="toggle-password" id="togglePassword2" tabindex="-1">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Password strength indicator -->
+                                <div class="password-strength">
+                                    <div class="strength-meter">
+                                        <div class="strength-meter-fill" id="passwordStrength" style="width: 0%;"></div>
+                                    </div>
+                                    <div class="strength-text" id="passwordStrengthText">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Enter a password
+                                    </div>
+                                </div>
+
+                                <!-- Password requirements -->
+                                <div class="password-requirements">
+                                    <p class="requirements-title">
+                                        <i class="bi bi-shield-check me-1"></i>
+                                        Password requirements:
+                                    </p>
+                                    <ul class="requirements-list">
+                                        <li class="requirement" id="req-length">
+                                            <i class="bi bi-x-circle text-danger me-2"></i>
+                                            At least 8 characters
+                                        </li>
+                                        <li class="requirement" id="req-lowercase">
+                                            <i class="bi bi-x-circle text-danger me-2"></i>
+                                            At least one lowercase letter
+                                        </li>
+                                        <li class="requirement" id="req-uppercase">
+                                            <i class="bi bi-x-circle text-danger me-2"></i>
+                                            At least one uppercase letter
+                                        </li>
+                                        <li class="requirement" id="req-number">
+                                            <i class="bi bi-x-circle text-danger me-2"></i>
+                                            At least one number
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div class="form-check-custom">
+                                    <input type="checkbox" class="form-check-input" id="terms" required>
+                                    <label class="form-check-label" for="terms">
+                                        I agree to the <a href="#" class="text-primary">Terms of Service</a> and 
+                                        <a href="#" class="text-primary">Privacy Policy</a>
+                                    </label>
+                                </div>
+
+                                <button type="submit" class="btn-register" id="registerBtn">
+                                    <i class="bi bi-check-circle me-2"></i>
+                                    Create Account
+                                </button>
+
+                                <div class="text-center mt-4">
+                                    <p class="mb-0" style="color: #4a5568;">
+                                        Already have an account? 
+                                        <a href="{{ path('app_login') }}" class="text-primary fw-bold text-decoration-none">
+                                            Sign In <i class="bi bi-arrow-right ms-1"></i>
+                                        </a>
+                                    </p>
+                                </div>
+                            {{ form_end(registrationForm) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Toggle password visibility
+        function setupPasswordToggle(buttonId, inputId) {
+            document.getElementById(buttonId).addEventListener('click', function() {
+                const password = document.getElementById(inputId);
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                
+                const icon = this.querySelector('i');
+                icon.classList.toggle('bi-eye');
+                icon.classList.toggle('bi-eye-slash');
+            });
+        }
+
+        setupPasswordToggle('togglePassword1', '{{ registrationForm.plainPassword.first.vars.id }}');
+        setupPasswordToggle('togglePassword2', '{{ registrationForm.plainPassword.second.vars.id }}');
+
+        // Password strength checker and requirements
+        const strengthBar = document.getElementById('passwordStrength');
+        const strengthText = document.getElementById('passwordStrengthText');
+        const passwordInput = document.getElementById('{{ registrationForm.plainPassword.first.vars.id }}');
+        const passwordConfirm = document.getElementById('{{ registrationForm.plainPassword.second.vars.id }}');
+        
+        // Requirement elements
+        const reqLength = document.getElementById('req-length');
+        const reqLowercase = document.getElementById('req-lowercase');
+        const reqUppercase = document.getElementById('req-uppercase');
+        const reqNumber = document.getElementById('req-number');
+
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            const checks = {
+                length: password.length >= 8,
+                lowercase: /[a-z]/.test(password),
+                uppercase: /[A-Z]/.test(password),
+                number: /[0-9]/.test(password)
+            };
+
+            // Update requirement icons
+            updateRequirement(reqLength, checks.length);
+            updateRequirement(reqLowercase, checks.lowercase);
+            updateRequirement(reqUppercase, checks.uppercase);
+            updateRequirement(reqNumber, checks.number);
+
+            // Calculate strength
+            if (checks.length) strength += 25;
+            if (checks.lowercase) strength += 25;
+            if (checks.uppercase) strength += 25;
+            if (checks.number) strength += 25;
+
+            return { strength, checks };
+        }
+
+        function updateRequirement(element, isValid) {
+            const icon = element.querySelector('i');
+            if (isValid) {
+                icon.className = 'bi bi-check-circle text-success me-2';
+                element.style.color = '#48bb78';
+            } else {
+                icon.className = 'bi bi-x-circle text-danger me-2';
+                element.style.color = '#f56565';
+            }
+        }
+
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            const { strength, checks } = checkPasswordStrength(password);
+            
+            // Update strength bar
+            strengthBar.style.width = strength + '%';
+            
+            // Update strength text and color
+            if (strength === 0) {
+                strengthBar.className = 'strength-meter-fill';
+                strengthText.innerHTML = '<i class="bi bi-info-circle me-1"></i> Enter a password';
+                strengthText.className = 'strength-text';
+            } else if (strength <= 25) {
+                strengthBar.className = 'strength-meter-fill strength-weak';
+                strengthText.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i> Weak password';
+                strengthText.className = 'strength-text text-danger';
+            } else if (strength <= 50) {
+                strengthBar.className = 'strength-meter-fill strength-fair';
+                strengthText.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i> Fair password';
+                strengthText.className = 'strength-text text-warning';
+            } else if (strength <= 75) {
+                strengthBar.className = 'strength-meter-fill strength-good';
+                strengthText.innerHTML = '<i class="bi bi-check-circle me-1"></i> Good password';
+                strengthText.className = 'strength-text text-info';
+            } else {
+                strengthBar.className = 'strength-meter-fill strength-strong';
+                strengthText.innerHTML = '<i class="bi bi-shield-check me-1"></i> Strong password';
+                strengthText.className = 'strength-text text-success';
+            }
+        });
+        
+        function checkPasswordMatch() {
+            const password = passwordInput.value;
+            const confirm = passwordConfirm.value;
+            
+            if (confirm.length > 0) {
+                if (password === confirm) {
+                    passwordConfirm.classList.remove('is-invalid');
+                    passwordConfirm.classList.add('is-valid');
+                } else {
+                    passwordConfirm.classList.remove('is-valid');
+                    passwordConfirm.classList.add('is-invalid');
+                }
+            } else {
+                passwordConfirm.classList.remove('is-valid', 'is-invalid');
+            }
+        }
+
+        passwordInput.addEventListener('input', checkPasswordMatch);
+        passwordConfirm.addEventListener('input', checkPasswordMatch);
+
+        // Form validation
+        (function() {
+            'use strict';
+            
+            const forms = document.querySelectorAll('.needs-validation');
+            
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    const password = passwordInput.value;
+                    const confirm = passwordConfirm.value;
+                    const terms = document.getElementById('terms');
+                    
+                    let isValid = true;
+                    
+                    // Check password match
+                    if (password !== confirm) {
+                        passwordConfirm.classList.add('is-invalid');
+                        isValid = false;
+                    }
+                    
+                    // Check terms
+                    if (!terms.checked) {
+                        terms.classList.add('is-invalid');
+                        isValid = false;
+                    }
+                    
+                    if (!form.checkValidity() || !isValid) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    } else {
+                        // Show loading state
+                        const btn = document.getElementById('registerBtn');
+                        btn.classList.add('loading');
+                        btn.disabled = true;
+                    }
+                    
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
+
+        // Terms checkbox validation
+        document.getElementById('terms').addEventListener('change', function() {
+            if (this.checked) {
+                this.classList.remove('is-invalid');
+            }
+        });
+
+        // Auto-dismiss alerts
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    const closeButton = alert.querySelector('.btn-close');
+                    if (closeButton) {
+                        closeButton.click();
+                    }
+                }, 5000);
+            });
+        });
+
+        // Floating label effect
+        document.querySelectorAll('.form-control').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.closest('.input-group-custom').classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                if (!this.value) {
+                    this.closest('.input-group-custom').classList.remove('focused');
+                }
+            });
+            
+            if (input.value) {
+                input.closest('.input-group-custom').classList.add('focused');
+            }
+        });
+    </script>
+{% endblock %}
