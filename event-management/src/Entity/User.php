@@ -7,6 +7,9 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -35,11 +38,32 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotBlank]
     private ?string $fullName = null;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: WebauthnCredential::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $webauthnCredentials;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $updatedAt = null;
+
+    public function __construct()
+    {
+        $this->webauthnCredentials = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
     }
 
+    public function setId(int $id): static
+    {
+        $this->id = $id;
+        return $this;
+    }
+    
     public function getEmail(): ?string
     {
         return $this->email;
@@ -91,8 +115,62 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    /**
+     * @return Collection<int, WebauthnCredential>
+     */
+    public function getWebauthnCredentials(): Collection
+    {
+        return $this->webauthnCredentials;
+    }
+
+    public function addWebauthnCredential(WebauthnCredential $credential): static
+    {
+        if (!$this->webauthnCredentials->contains($credential)) {
+            $this->webauthnCredentials->add($credential);
+            $credential->setUser($this);
+        }
+        return $this;
+    }
+
+    public function removeWebauthnCredential(WebauthnCredential $credential): static
+    {
+        if ($this->webauthnCredentials->removeElement($credential)) {
+            if ($credential->getUser() === $this) {
+                $credential->setUser(null);
+            }
+        }
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static
+    {
+        $this->updatedAt = $updatedAt;
+        return $this;
+    }
+
     public function eraseCredentials(): void
     {
         // If you store any temporary, sensitive data on the user, clear it here
+    }
+
+    public function hasWebauthnCredential(): bool
+    {
+        return !$this->webauthnCredentials->isEmpty();
     }
 }

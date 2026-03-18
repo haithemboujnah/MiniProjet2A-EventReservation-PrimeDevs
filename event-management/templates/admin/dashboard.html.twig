@@ -1,0 +1,143 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Dashboard - EventBooking Admin{% endblock %}
+
+{% block body %}
+    <div class="dashboard">
+        <div class="page-header">
+            <div class="header-left">
+                <h1 class="page-title">
+                    <i class="bi bi-speedometer2"></i>
+                    Dashboard
+                </h1>
+                <p class="page-subtitle">Welcome back, {{ app.user.fullName ?? app.user.username }}!</p>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card primary">
+                <div class="stat-icon">
+                    <i class="bi bi-calendar-event"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value">{{ stats.total_events }}</span>
+                    <span class="stat-label">Total Events</span>
+                </div>
+                <div class="stat-trend">
+                    <i class="bi bi-arrow-up"></i>
+                    +12%
+                </div>
+            </div>
+
+            <div class="stat-card success">
+                <div class="stat-icon">
+                    <i class="bi bi-sun"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value">{{ stats.upcoming_events }}</span>
+                    <span class="stat-label">Upcoming Events</span>
+                </div>
+            </div>
+
+            <div class="stat-card warning">
+                <div class="stat-icon">
+                    <i class="bi bi-moon"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value">{{ stats.past_events }}</span>
+                    <span class="stat-label">Past Events</span>
+                </div>
+            </div>
+
+            <div class="stat-card info">
+                <div class="stat-icon">
+                    <i class="bi bi-ticket"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value">{{ stats.total_reservations }}</span>
+                    <span class="stat-label">Total Reservations</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <!-- Recent Events -->
+            <div class="col-lg-6">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="bi bi-calendar-check"></i>
+                            Recent Events
+                        </h5>
+                        <a href="{{ path('admin_events_index') }}" class="btn-view-all">
+                            View All <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div class="recent-list">
+                            {% for event in stats.recent_events %}
+                                <div class="recent-item">
+                                    <div class="recent-icon">
+                                        <i class="bi bi-calendar-event"></i>
+                                    </div>
+                                    <div class="recent-content">
+                                        <h6 class="recent-title">{{ event.title }}</h6>
+                                        <div class="recent-meta">
+                                            <span><i class="bi bi-calendar"></i> {{ event.date|date('M d, Y') }}</span>
+                                            <span><i class="bi bi-people"></i> {{ event.reservations|length }} bookings</span>
+                                        </div>
+                                    </div>
+                                    <a href="{{ path('admin_events_show', {'id': event.id}) }}" class="recent-action">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </div>
+                            {% else %}
+                                <p class="text-muted text-center py-3">No events found</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Reservations -->
+            <div class="col-lg-6">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="bi bi-ticket-perforated"></i>
+                            Recent Reservations
+                        </h5>
+                        <a href="#" class="btn-view-all">
+                            View All <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div class="recent-list">
+                            {% for reservation in stats.recent_reservations %}
+                                <div class="recent-item">
+                                    <div class="recent-icon">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                    <div class="recent-content">
+                                        <h6 class="recent-title">{{ reservation.name }}</h6>
+                                        <div class="recent-meta">
+                                            <span><i class="bi bi-envelope"></i> {{ reservation.email }}</span>
+                                            <span><i class="bi bi-calendar"></i> {{ reservation.createdAt|date('M d, Y') }}</span>
+                                        </div>
+                                        <small class="text-muted">Event: {{ reservation.event.title }}</small>
+                                    </div>
+                                    <span class="recent-badge">
+                                        #{{ reservation.id }}
+                                    </span>
+                                </div>
+                            {% else %}
+                                <p class="text-muted text-center py-3">No reservations found</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

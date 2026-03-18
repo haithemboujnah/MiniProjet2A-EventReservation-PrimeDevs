@@ -1,4 +1,18 @@
 {
+    "api-platform/core": {
+        "version": "4.3",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "4.0",
+            "ref": "cb9e6b8ceb9b62f32d41fc8ad72a25d5bd674c6d"
+        },
+        "files": [
+            "./config/packages/api_platform.yaml",
+            "./config/routes/api_platform.yaml",
+            "./src/ApiResource/.gitignore"
+        ]
+    },
     "doctrine/deprecations": {
         "version": "1.1",
         "recipe": {
@@ -48,13 +62,18 @@
         ]
     },
     "gesdinet/jwt-refresh-token-bundle": {
-        "version": "1.5",
+        "version": "2.0",
         "recipe": {
             "repo": "github.com/symfony/recipes-contrib",
             "branch": "main",
             "version": "1.0",
             "ref": "2390b4ed5c195e0b3f6dea45221f3b7c0af523a0"
-        }
+        },
+        "files": [
+            "./config/packages/gesdinet_jwt_refresh_token.yaml",
+            "./config/routes/gesdinet_jwt_refresh_token.yaml",
+            "./src/Entity/RefreshToken.php"
+        ]
     },
     "lexik/jwt-authentication-bundle": {
         "version": "3.2",
@@ -66,6 +85,18 @@
         },
         "files": [
             "./config/packages/lexik_jwt_authentication.yaml"
+        ]
+    },
+    "nyholm/psr7": {
+        "version": "1.8",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "1.0",
+            "ref": "4a8c0345442dcca1d8a2c65633dcf0285dd5a5a2"
+        },
+        "files": [
+            "./config/packages/nyholm_psr7.yaml"
         ]
     },
     "symfony/console": {
@@ -208,5 +239,8 @@
     },
     "twig/extra-bundle": {
         "version": "v3.23.0"
+    },
+    "web-auth/webauthn-stimulus": {
+        "version": "5.2.4"
     }
 }

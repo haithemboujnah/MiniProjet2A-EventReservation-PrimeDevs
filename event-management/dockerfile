@@ -1,41 +1,41 @@
-FROM php:8.2-fpm
+# Base PHP image
+FROM php:8.2-fpm-alpine
 
-# Installation des dépendances système
-RUN apt-get update && apt-get install -y \
+# Install system dependencies
+RUN apk add --no-cache \
+    bash \
     git \
     curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
+    openssl \
     unzip \
     libzip-dev \
-    libssl-dev
+    icu-dev \
+    oniguruma-dev \
+    zlib-dev \
+    postgresql-dev \
+    nodejs \
+    npm \
+    supervisor
 
-# Nettoyage
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+# Install PHP extensions
+RUN docker-php-ext-install pdo pdo_pgsql intl zip opcache
 
-# Installation des extensions PHP
-RUN docker-php-ext-install \
-    pdo_mysql \
-    mbstring \
-    zip \
-    exif \
-    pcntl \
-    bcmath \
-    gd \
-    opcache
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Installation de Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Configuration PHP
-COPY docker/php/php.ini /usr/local/etc/php/conf.d/php.ini
-
-# Création d'un utilisateur non-root
-RUN useradd -u 1000 -m event_user
-USER event_user
-
+# Set working directory
 WORKDIR /var/www
+
+# Copy application code
+COPY . .
+
+# Install PHP dependencies
+RUN composer install --no-interaction --optimize-autoloader
+
+# Permissions
+RUN chown -R www-data:www-data /var/www
+
+# Expose port 9000 for php-fpm
+EXPOSE 9000
 
 CMD ["php-fpm"]

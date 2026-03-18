@@ -1,0 +1,173 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Reservations for {{ event.title }}{% endblock %}
+
+{% block body %}
+    <div class="reservations-page">
+        <div class="page-header">
+            <div class="header-left">
+                <h1 class="page-title">
+                    <i class="bi bi-ticket"></i>
+                    Reservations: {{ event.title }}
+                </h1>
+                <p class="page-subtitle">Total: {{ reservations|length }} reservations</p>
+            </div>
+            <div class="header-actions">
+                <a href="{{ path('admin_events_show', {'id': event.id}) }}" class="btn btn-info">
+                    <i class="bi bi-calendar-event"></i>
+                    View Event
+                </a>
+                <a href="{{ path('admin_events_index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i>
+                    Back
+                </a>
+            </div>
+        </div>
+
+        <!-- Export Options -->
+        <div class="export-card">
+            <div class="export-actions">
+                <button class="btn btn-outline-primary" onclick="exportToCSV()">
+                    <i class="bi bi-file-earmark-spreadsheet"></i>
+                    Export to CSV
+                </button>
+                <button class="btn btn-outline-success" onclick="exportToPDF()">
+                    <i class="bi bi-file-earmark-pdf"></i>
+                    Export to PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- Reservations Table -->
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="table admin-table" id="reservationsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Booked On</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reservation in reservations %}
+                            <tr>
+                                <td>#{{ reservation.id }}</td>
+                                <td>
+                                    <strong>{{ reservation.name }}</strong>
+                                </td>
+                                <td>
+                                    <a href="mailto:{{ reservation.email }}">{{ reservation.email }}</a>
+                                </td>
+                                <td>{{ reservation.phone }}</td>
+                                <td>
+                                    {{ reservation.createdAt|date('M d, Y') }}
+                                    <small class="d-block text-muted">{{ reservation.createdAt|date('g:i A') }}</small>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a href="mailto:{{ reservation.email }}" class="action-btn email" title="Send Email">
+                                            <i class="bi bi-envelope"></i>
+                                        </a>
+                                        <button type="button" 
+                                                class="action-btn delete" 
+                                                title="Delete"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteModal{{ reservation.id }}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Delete Modal -->
+                            <div class="modal fade" id="deleteModal{{ reservation.id }}" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">
+                                                <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                                                Delete Reservation
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Are you sure you want to delete the reservation for:</p>
+                                            <p class="fw-bold">{{ reservation.name }}</p>
+                                            <p class="text-muted">{{ reservation.email }} | {{ reservation.phone }}</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                Cancel
+                                            </button>
+                                            <form method="post" action="{{ path('admin_reservation_delete', {'id': reservation.id}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reservation.id) }}">
+                                                <button type="submit" class="btn btn-danger">
+                                                    <i class="bi bi-trash me-2"></i>
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="empty-state">
+                                        <i class="bi bi-ticket"></i>
+                                        <h4>No Reservations Yet</h4>
+                                        <p>This event hasn't received any reservations.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function exportToCSV() {
+            const rows = [];
+            const table = document.getElementById('reservationsTable');
+            const headers = ['ID', 'Name', 'Email', 'Phone', 'Booked On'];
+            rows.push(headers.join(','));
+            
+            const dataRows = table.querySelectorAll('tbody tr');
+            dataRows.forEach(row => {
+                if (row.querySelector('td')) {
+                    const cells = row.querySelectorAll('td');
+                    const rowData = [
+                        cells[0].textContent.trim(),
+                        cells[1].textContent.trim(),
+                        cells[2].textContent.trim(),
+                        cells[3].textContent.trim(),
+                        cells[4].textContent.trim()
+                    ];
+                    rows.push(rowData.join(','));
+                }
+            });
+            
+            const csvContent = rows.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'reservations-{{ event.id }}.csv';
+            a.click();
+        }
+        
+        function exportToPDF() {
+            // This would typically use a library like jsPDF
+            alert('PDF export functionality would be implemented here');
+        }
+    </script>
+{% endblock %}

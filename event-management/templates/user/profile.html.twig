@@ -1,0 +1,269 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Profile - EventBooking{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/profile.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="profile-page">
+        <div class="profile-container">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        {{ user.fullName|slice(0, 1)|upper }}
+                    </div>
+                    <div class="profile-name">{{ user.fullName }}</div>
+                    <div class="profile-email">
+                        <i class="bi bi-envelope"></i>
+                        {{ user.email }}
+                    </div>
+                    <div style="margin-top: 1.5rem;">
+                        {% if 'ROLE_ADMIN' in user.roles %}
+                            <span class="badge badge-admin">
+                                <i class="bi bi-shield-lock"></i> Administrator
+                            </span>
+                        {% else %}
+                            <span class="badge">
+                                <i class="bi bi-person"></i> Standard User
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="profile-body">
+                    <!-- User Information Section -->
+                    <div class="info-section">
+                        <div class="section-title">
+                            <span>
+                                <i class="bi bi-person"></i> Personal Information
+                            </span>
+                        </div>
+                        
+                        <div class="info-grid">
+                            <span class="info-label">Full Name</span>
+                            <span class="info-value">{{ user.fullName }}</span>
+                            
+                            <span class="info-label">Email Address</span>
+                            <span class="info-value">{{ user.email }}</span>
+                            
+                            <span class="info-label">Member Since</span>
+                            <span class="info-value">{{ user.createdAt|date('Y-m-d') }}</span>
+                            
+                            <span class="info-label">User ID</span>
+                            <span class="info-value">#{{ user.id }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- JWT Token Section -->
+                    <div class="info-section">
+                        <div class="section-title">
+                            <span>
+                                <i class="bi bi-key"></i> API Access Token
+                            </span>
+                            <button class="refresh-btn" onclick="refreshToken()" id="refreshBtn">
+                                <i class="bi bi-arrow-repeat"></i> Refresh
+                            </button>
+                        </div>
+                        
+                        {% if jwt_token %}
+                            <div class="token-section">
+                                <div class="token-label">
+                                    <i class="bi bi-shield-lock"></i> Your JWT Token:
+                                </div>
+                                <div class="token-display" id="tokenDisplay">
+                                    {{ jwt_token }}
+                                    <button class="copy-btn" onclick="copyToken()" id="copyBtn">
+                                        <i class="bi bi-files"></i> Copy
+                                    </button>
+                                </div>
+                                
+                                <div class="token-info" id="tokenInfo">
+                                    <span>
+                                        <i class="bi bi-clock"></i> 
+                                        Expires: <strong id="expiryTime">Calculating...</strong>
+                                    </span>
+                                    <span>
+                                        <i class="bi bi-check-circle"></i> 
+                                        Status: <strong id="tokenStatus">Active</strong>
+                                    </span>
+                                </div>
+                                
+                                <div id="successMessage" class="success-message" style="display: none;"></div>
+                            </div>
+                        {% else %}
+                            <div class="token-section empty-state">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                <p>No token available. Please login again.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="action-buttons">
+                        <a href="{{ path('app_my_reservations') }}" class="btn btn-primary">
+                            <i class="bi bi-ticket"></i> My Reservations
+                        </a>
+                        <a href="{{ path('app_home') }}" class="btn btn-outline">
+                            <i class="bi bi-house"></i> Back to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function copyToken() {
+            const tokenElement = document.getElementById('tokenDisplay');
+            // Get the text node content (first child) and trim it
+            const token = tokenElement.childNodes[0].nodeValue.trim();
+            const copyBtn = document.getElementById('copyBtn');
+            
+            navigator.clipboard.writeText(token).then(() => {
+                copyBtn.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
+                copyBtn.classList.add('copied');
+                
+                setTimeout(() => {
+                    copyBtn.innerHTML = '<i class="bi bi-files"></i> Copy';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = token;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                
+                copyBtn.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
+                copyBtn.classList.add('copied');
+                
+                setTimeout(() => {
+                    copyBtn.innerHTML = '<i class="bi bi-files"></i> Copy';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+        
+        function refreshToken() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            const originalText = refreshBtn.innerHTML;
+            
+            refreshBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Refreshing...';
+            refreshBtn.disabled = true;
+            
+            fetch('{{ path('app_refresh_api_token') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.token) {
+                    // Update token display
+                    const tokenDisplay = document.getElementById('tokenDisplay');
+                    tokenDisplay.childNodes[0].nodeValue = data.token + ' ';
+                    
+                    // Update meta tag
+                    const metaTag = document.querySelector('meta[name="jwt-token"]');
+                    if (metaTag) {
+                        metaTag.content = data.token;
+                    }
+                    
+                    // Show success message
+                    const successMsg = document.getElementById('successMessage');
+                    successMsg.innerHTML = '<i class="bi bi-check-circle"></i> Token refreshed successfully!';
+                    successMsg.style.display = 'flex';
+                    successMsg.style.color = '#48bb78';
+                    
+                    setTimeout(() => {
+                        successMsg.style.display = 'none';
+                    }, 3000);
+                    
+                    // Recalculate expiry
+                    calculateTokenExpiry(data.token);
+                }
+                
+                refreshBtn.innerHTML = originalText;
+                refreshBtn.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                refreshBtn.innerHTML = originalText;
+                refreshBtn.disabled = false;
+                
+                const successMsg = document.getElementById('successMessage');
+                successMsg.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Error refreshing token';
+                successMsg.style.color = '#f56565';
+                successMsg.style.display = 'flex';
+                
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 3000);
+            });
+        }
+        
+        function calculateTokenExpiry(token) {
+            try {
+                const tokenValue = token || '{{ jwt_token }}';
+                if (!tokenValue || tokenValue === '') {
+                    document.getElementById('expiryTime').textContent = 'No token';
+                    return;
+                }
+                
+                const payload = JSON.parse(atob(tokenValue.split('.')[1]));
+                
+                if (payload.exp) {
+                    const expiryDate = new Date(payload.exp * 1000);
+                    const now = new Date();
+                    const diffMs = expiryDate - now;
+                    const diffMins = Math.floor(diffMs / 60000);
+                    const diffHours = Math.floor(diffMs / 3600000);
+                    const diffDays = Math.floor(diffMs / 86400000);
+                    
+                    let expiryText = '';
+                    let statusElement = document.getElementById('tokenStatus');
+                    
+                    if (diffMs <= 0) {
+                        expiryText = 'Expired';
+                        if (statusElement) statusElement.innerHTML = '<span style="color: #f56565;">Expired</span>';
+                    } else if (diffDays > 0) {
+                        expiryText = `${diffDays}d ${diffHours % 24}h`;
+                        if (statusElement) statusElement.innerHTML = '<span style="color: #48bb78;">Active</span>';
+                    } else if (diffHours > 0) {
+                        expiryText = `${diffHours}h ${diffMins % 60}m`;
+                        if (statusElement) statusElement.innerHTML = '<span style="color: #48bb78;">Active</span>';
+                    } else {
+                        expiryText = `${diffMins}m`;
+                        if (statusElement) statusElement.innerHTML = '<span style="color: #48bb78;">Active</span>';
+                    }
+                    
+                    document.getElementById('expiryTime').textContent = expiryText;
+                }
+            } catch (e) {
+                console.error('Error decoding token:', e);
+                document.getElementById('expiryTime').textContent = 'Unable to decode';
+            }
+        }
+        
+        // Calculate expiry on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            calculateTokenExpiry();
+        });
+    </script>
+{% endblock %}

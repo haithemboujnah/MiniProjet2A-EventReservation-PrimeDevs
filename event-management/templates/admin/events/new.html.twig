@@ -1,0 +1,205 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Create New Event - Admin{% endblock %}
+
+{% block body %}
+    <div class="event-form-page">
+        <div class="page-header">
+            <div class="header-left">
+                <h1 class="page-title">
+                    <i class="bi bi-plus-circle"></i>
+                    Create New Event
+                </h1>
+                <p class="page-subtitle">Fill in the details to create a new event</p>
+            </div>
+            <div class="header-actions">
+                <a href="{{ path('admin_events_index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i>
+                    Back to Events
+                </a>
+            </div>
+        </div>
+
+        <div class="form-card">
+            {{ form_start(form, {'attr': {'class': 'event-form', 'novalidate': 'novalidate'}}) }}
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="bi bi-info-circle"></i>
+                                Basic Information
+                            </h5>
+                            
+                            <div class="mb-3">
+                                {{ form_label(form.title, 'Event Title', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(form.title, {'attr': {'class': 'form-control', 'placeholder': 'e.g., Summer Music Festival 2024'}}) }}
+                                <div class="form-error">
+                                    {{ form_errors(form.title) }}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 6, 'placeholder': 'Describe your event...'}}) }}
+                                <div class="form-error">
+                                    {{ form_errors(form.description) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="bi bi-geo-alt"></i>
+                                Location & Date
+                            </h5>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form_label(form.date, 'Date & Time', {'label_attr': {'class': 'form-label'}}) }}
+                                    {{ form_widget(form.date, {'attr': {'class': 'form-control'}}) }}
+                                    <div class="form-error">
+                                        {{ form_errors(form.date) }}
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    {{ form_label(form.location, 'Location', {'label_attr': {'class': 'form-label'}}) }}
+                                    {{ form_widget(form.location, {'attr': {'class': 'form-control', 'placeholder': 'e.g., Central Park, New York'}}) }}
+                                    <div class="form-error">
+                                        {{ form_errors(form.location) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="bi bi-people"></i>
+                                Capacity & Media
+                            </h5>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form_label(form.seats, 'Total Seats', {'label_attr': {'class': 'form-label'}}) }}
+                                    {{ form_widget(form.seats, {'attr': {'class': 'form-control', 'min': 1}}) }}
+                                    <div class="form-error">
+                                        {{ form_errors(form.seats) }}
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    {{ form_label(form.imageUrl, 'Image URL', {'label_attr': {'class': 'form-label'}}) }}
+                                    {{ form_widget(form.imageUrl, {'attr': {'class': 'form-control', 'placeholder': 'https://example.com/image.jpg'}}) }}
+                                    <div class="form-error">
+                                        {{ form_errors(form.imageUrl) }}
+                                    </div>
+                                    <small class="text-muted">Leave empty for default image</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="preview-card">
+                            <h5 class="preview-title">
+                                <i class="bi bi-eye"></i>
+                                Live Preview
+                            </h5>
+                            <div class="preview-content" id="livePreview">
+                                <div class="preview-image">
+                                    <img src="" alt="Preview" id="previewImage" style="display: none;">
+                                    <div class="preview-placeholder" id="previewPlaceholder">
+                                        <i class="bi bi-image"></i>
+                                        <p>Image preview will appear here</p>
+                                    </div>
+                                </div>
+                                <div class="preview-info">
+                                    <h6 id="previewTitle">Event Title</h6>
+                                    <p id="previewDate">Date will appear here</p>
+                                    <p id="previewLocation">Location will appear here</p>
+                                    <p id="previewSeats">Seats: 0</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info-card">
+                            <h5 class="info-title">
+                                <i class="bi bi-info-circle"></i>
+                                Tips
+                            </h5>
+                            <ul class="info-list">
+                                <li><i class="bi bi-check-circle text-success"></i> Use a high-quality image URL</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Be descriptive in your title</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Provide accurate location details</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Set realistic seat numbers</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-check-circle"></i>
+                        Create Event
+                    </button>
+                    <a href="{{ path('admin_events_index') }}" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-x-circle"></i>
+                        Cancel
+                    </a>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Live preview functionality
+        document.querySelector('#event_title').addEventListener('input', function() {
+            document.getElementById('previewTitle').textContent = this.value || 'Event Title';
+        });
+
+        document.querySelector('#event_location').addEventListener('input', function() {
+            document.getElementById('previewLocation').textContent = this.value || 'Location will appear here';
+        });
+
+        document.querySelector('#event_seats').addEventListener('input', function() {
+            document.getElementById('previewSeats').textContent = 'Seats: ' + (this.value || '0');
+        });
+
+        document.querySelector('#event_date').addEventListener('change', function() {
+            if (this.value) {
+                const date = new Date(this.value);
+                document.getElementById('previewDate').textContent = date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+        });
+
+        document.querySelector('#event_imageUrl').addEventListener('input', function() {
+            const url = this.value;
+            const previewImage = document.getElementById('previewImage');
+            const placeholder = document.getElementById('previewPlaceholder');
+            
+            if (url) {
+                previewImage.src = url;
+                previewImage.style.display = 'block';
+                placeholder.style.display = 'none';
+                
+                previewImage.onerror = function() {
+                    previewImage.style.display = 'none';
+                    placeholder.style.display = 'flex';
+                };
+            } else {
+                previewImage.style.display = 'none';
+                placeholder.style.display = 'flex';
+            }
+        });
+    </script>
+{% endblock %}

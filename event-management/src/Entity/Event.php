@@ -44,12 +44,16 @@ class Event
     #[Assert\Length(max: 500)]
     private ?string $imageUrl = null;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $createdAt = null;
+
     #[ORM\OneToMany(mappedBy: 'event', targetEntity: Reservation::class, orphanRemoval: true)]
     private Collection $reservations;
 
     public function __construct()
     {
         $this->reservations = new ArrayCollection();
+        $this->createdAt = new \DateTime();
     }
 
     public function getId(): ?int
@@ -160,4 +164,16 @@ class Event
     {
         return $this->imageUrl !== null && filter_var($this->imageUrl, FILTER_VALIDATE_URL) !== false;
     }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(?\DateTimeInterface $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+        return $this;
+    }
+
 }

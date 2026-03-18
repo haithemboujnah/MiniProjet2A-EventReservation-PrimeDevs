@@ -1,17 +1,73 @@
 security:
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+        App\Entity\Admin:
+            algorithm: auto
+        App\Entity\User:
+            algorithm: auto
     
     providers:
         app_user_provider:
             entity:
                 class: App\Entity\User
                 property: email
+        app_admin_provider:
+            entity:
+                class: App\Entity\Admin
+                property: username
     
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
+        
+        api_login:
+            pattern: ^/api/login
+            stateless: true
+            provider: app_user_provider  # Add this line
+            json_login:
+                check_path: /api/login
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+
+        api_refresh:
+            pattern: ^/api/token/refresh
+            stateless: true
+            provider: app_user_provider  # Add this line
+            jwt: ~
+        
+        api:
+            pattern: ^/api
+            stateless: true
+            provider: app_user_provider
+            jwt: ~
+
+        admin:
+            pattern: ^/admin
+            provider: app_admin_provider
+            form_login:
+                login_path: admin_login
+                check_path: admin_login
+                default_target_path: admin_dashboard
+                username_parameter: admin_login[username]
+                password_parameter: admin_login[password]
+                csrf_parameter: _csrf_token
+                csrf_token_id: authenticate
+                enable_csrf: true
+            logout:
+                path: admin_logout
+                target: admin_login
+                invalidate_session: true
+                delete_cookies:
+                    - { name: 'PHPSESSID', path: '/admin' }
+                    - { name: 'REMEMBERME', path: '/admin' }
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 604800
+                path: /admin
+                always_remember_me: true
         
         main:
             lazy: true
@@ -21,29 +77,41 @@ security:
                 check_path: app_login
                 username_parameter: email
                 password_parameter: password
+                csrf_parameter: _csrf_token
+                csrf_token_id: authenticate
                 enable_csrf: true
-                default_target_path: app_home
+                default_target_path: app_login_success
             logout:
                 path: app_logout
                 target: app_home
                 invalidate_session: true
                 delete_cookies:
-                    - name: 'PHPSESSID'
-                      path: '/'
+                    - { name: 'PHPSESSID', path: '/' }
+                    - { name: 'REMEMBERME', path: '/' }
             remember_me:
                 secret: '%kernel.secret%'
                 lifetime: 604800
                 path: /
+                always_remember_me: true
     
     access_control:
-        - { path: ^/api/login, roles: PUBLIC_ACCESS }
-        - { path: ^/api/register, roles: PUBLIC_ACCESS }
-        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+        # Admin routes
+        - { path: ^/admin/login$, roles: PUBLIC_ACCESS }
+        - { path: ^/admin/create-admin$, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
+        
+        # API routes - order matters! Put specific routes first
+        - { path: ^/api/register, roles: PUBLIC_ACCESS }
+        - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/token/refresh, roles: PUBLIC_ACCESS }
+        - { path: ^/api/events/\d+/reserve, roles: IS_AUTHENTICATED_FULLY, methods: [POST] }
+        - { path: ^/api/events/\d+/cancel, roles: IS_AUTHENTICATED_FULLY, methods: [POST] }
+        - { path: ^/api/events, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/reservations, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api/me, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+        
+        # User routes
         - { path: ^/login$, roles: PUBLIC_ACCESS }
         - { path: ^/register$, roles: PUBLIC_ACCESS }
-        - { path: ^/event/\d+/reserve$, roles: IS_AUTHENTICATED_FULLY }
-        - { path: ^/reservation/\d+/confirmation$, roles: IS_AUTHENTICATED_FULLY }
-        - { path: ^/$, roles: PUBLIC_ACCESS }
-        - { path: ^/events, roles: PUBLIC_ACCESS }
-        - { path: ^/event/\d+$, roles: PUBLIC_ACCESS }
+        - { path: ^/, roles: PUBLIC_ACCESS }

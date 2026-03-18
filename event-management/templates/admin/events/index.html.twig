@@ -1,0 +1,280 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Manage Events - Admin{% endblock %}
+
+{% block body %}
+    <div class="events-index">
+        <div class="page-header">
+            <div class="header-left">
+                <h1 class="page-title">
+                    <i class="bi bi-calendar-event"></i>
+                    Manage Events
+                </h1>
+                <p class="page-subtitle">Create, edit, and manage all events</p>
+            </div>
+            <div class="header-actions">
+                <a href="{{ path('admin_events_new') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i>
+                    Create New Event
+                </a>
+            </div>
+        </div>
+
+        <!-- Filters and Search -->
+        <div class="filters-card">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <div class="search-box">
+                        <i class="bi bi-search"></i>
+                        <input type="text" id="eventSearch" class="form-control" placeholder="Search events...">
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="all">All Events</button>
+                        <button class="filter-btn" data-filter="upcoming">Upcoming</button>
+                        <button class="filter-btn" data-filter="past">Past</button>
+                        <select class="form-select sort-select">
+                            <option value="date_desc">Date (Newest)</option>
+                            <option value="date_asc">Date (Oldest)</option>
+                            <option value="title_asc">Title (A-Z)</option>
+                            <option value="title_desc">Title (Z-A)</option>
+                            <option value="seats_desc">Most Seats</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Events Table -->
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="table admin-table" id="eventsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Image</th>
+                            <th>Title</th>
+                            <th>Date & Time</th>
+                            <th>Location</th>
+                            <th>Seats</th>
+                            <th>Bookings</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in events %}
+                            <tr>
+                                <td>#{{ event.id }}</td>
+                                <td>
+                                    <div class="event-thumb">
+                                        {% if event.imageUrl %}
+                                            <img src="{{ event.imageUrl }}" alt="{{ event.title }}">
+                                        {% else %}
+                                            <div class="no-image">
+                                                <i class="bi bi-image"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong>{{ event.title }}</strong>
+                                    <small class="d-block text-muted">{{ event.description|slice(0, 50) }}...</small>
+                                </td>
+                                <td>
+                                    <div>{{ event.date|date('M d, Y') }}</div>
+                                    <small class="text-muted">{{ event.date|date('g:i A') }}</small>
+                                </td>
+                                <td>{{ event.location }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ event.seats }} total</span>
+                                    <small class="d-block text-muted">{{ event.availableSeats }} left</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ event.reservations|length }}</span>
+                                </td>
+                                <td>
+                                    {% if event.date > date() %}
+                                        {% if event.availableSeats > 0 %}
+                                            <span class="status-badge active">
+                                                <i class="bi bi-check-circle"></i>
+                                                Active
+                                            </span>
+                                        {% else %}
+                                            <span class="status-badge warning">
+                                                <i class="bi bi-exclamation-triangle"></i>
+                                                Full
+                                            </span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="status-badge expired">
+                                            <i class="bi bi-clock-history"></i>
+                                            Expired
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a href="{{ path('admin_events_show', {'id': event.id}) }}" 
+                                           class="action-btn view" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{{ path('admin_events_edit', {'id': event.id}) }}" 
+                                           class="action-btn edit" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="{{ path('admin_event_reservations', {'id': event.id}) }}" 
+                                           class="action-btn bookings" title="View Bookings">
+                                            <i class="bi bi-ticket"></i>
+                                        </a>
+                                        {% if event.reservations|length == 0 %}
+                                            <button type="button" 
+                                                    class="action-btn delete" 
+                                                    title="Delete"
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteModal{{ event.id }}">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Delete Modal -->
+                            <div class="modal fade" id="deleteModal{{ event.id }}" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">
+                                                <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                                                Delete Event
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Are you sure you want to delete the event:</p>
+                                            <p class="fw-bold">{{ event.title }}</p>
+                                            <p class="text-danger small mt-3">
+                                                <i class="bi bi-info-circle me-1"></i>
+                                                This action cannot be undone.
+                                            </p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                Cancel
+                                            </button>
+                                            <form method="post" action="{{ path('admin_events_delete', {'id': event.id}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
+                                                <button type="submit" class="btn btn-danger">
+                                                    <i class="bi bi-trash me-2"></i>
+                                                    Delete Event
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <tr>
+                                <td colspan="9" class="text-center py-5">
+                                    <div class="empty-state">
+                                        <i class="bi bi-calendar-x"></i>
+                                        <h4>No Events Found</h4>
+                                        <p>Get started by creating your first event.</p>
+                                        <a href="{{ path('admin_events_new') }}" class="btn btn-primary">
+                                            <i class="bi bi-plus-circle"></i>
+                                            Create Event
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Search functionality
+        document.getElementById('eventSearch').addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('#eventsTable tbody tr');
+            
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const filter = this.dataset.filter;
+                const now = new Date();
+                
+                document.querySelectorAll('#eventsTable tbody tr').forEach(row => {
+                    if (filter === 'all') {
+                        row.style.display = '';
+                        return;
+                    }
+                    
+                    const dateCell = row.querySelector('td:nth-child(4) div').textContent;
+                    const eventDate = new Date(dateCell);
+                    
+                    if (filter === 'upcoming' && eventDate > now) {
+                        row.style.display = '';
+                    } else if (filter === 'past' && eventDate < now) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Sort functionality
+        document.querySelector('.sort-select').addEventListener('change', function() {
+            const sortBy = this.value;
+            const tbody = document.querySelector('#eventsTable tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            rows.sort((a, b) => {
+                switch(sortBy) {
+                    case 'date_desc':
+                        const dateA = new Date(a.querySelector('td:nth-child(4) div').textContent);
+                        const dateB = new Date(b.querySelector('td:nth-child(4) div').textContent);
+                        return dateB - dateA;
+                    case 'date_asc':
+                        const dateC = new Date(a.querySelector('td:nth-child(4) div').textContent);
+                        const dateD = new Date(b.querySelector('td:nth-child(4) div').textContent);
+                        return dateC - dateD;
+                    case 'title_asc':
+                        const titleA = a.querySelector('td:nth-child(3) strong').textContent;
+                        const titleB = b.querySelector('td:nth-child(3) strong').textContent;
+                        return titleA.localeCompare(titleB);
+                    case 'title_desc':
+                        const titleC = a.querySelector('td:nth-child(3) strong').textContent;
+                        const titleD = b.querySelector('td:nth-child(3) strong').textContent;
+                        return titleD.localeCompare(titleC);
+                    case 'seats_desc':
+                        const seatsA = parseInt(a.querySelector('td:nth-child(6) .badge').textContent);
+                        const seatsB = parseInt(b.querySelector('td:nth-child(6) .badge').textContent);
+                        return seatsB - seatsA;
+                    default:
+                        return 0;
+                }
+            });
+            
+            tbody.innerHTML = '';
+            rows.forEach(row => tbody.appendChild(row));
+        });
+    </script>
+{% endblock %}

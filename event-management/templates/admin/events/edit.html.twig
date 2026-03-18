@@ -1,0 +1,157 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Edit Event - {{ event.title }}{% endblock %}
+
+{% block body %}
+    <div class="event-form-page">
+        <div class="page-header">
+            <div class="header-left">
+                <h1 class="page-title">
+                    <i class="bi bi-pencil-square"></i>
+                    Edit Event
+                </h1>
+                <p class="page-subtitle">Editing: {{ event.title }}</p>
+            </div>
+            <div class="header-actions">
+                <a href="{{ path('admin_events_show', {'id': event.id}) }}" class="btn btn-info">
+                    <i class="bi bi-eye"></i>
+                    View Event
+                </a>
+                <a href="{{ path('admin_events_index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i>
+                    Back to Events
+                </a>
+            </div>
+        </div>
+
+        <div class="form-card">
+            {{ form_start(form, {'attr': {'class': 'event-form', 'novalidate': 'novalidate'}}) }}
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <!-- Similar to new.html.twig but with existing data -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="bi bi-info-circle"></i>
+                                Basic Information
+                            </h5>
+                            
+                            <div class="mb-3">
+                                {{ form_label(form.title, 'Event Title', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(form.title, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.title) }}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 6}}) }}
+                                {{ form_errors(form.description) }}
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="bi bi-geo-alt"></i>
+                                Location & Date
+                            </h5>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form_label(form.date, 'Date & Time', {'label_attr': {'class': 'form-label'}}) }}
+                                    {{ form_widget(form.date, {'attr': {'class': 'form-control'}}) }}
+                                    {{ form_errors(form.date) }}
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    {{ form_label(form.location, 'Location', {'label_attr': {'class': 'form-label'}}) }}
+                                    {{ form_widget(form.location, {'attr': {'class': 'form-control'}}) }}
+                                    {{ form_errors(form.location) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="bi bi-people"></i>
+                                Capacity & Media
+                            </h5>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form_label(form.seats, 'Total Seats', {'label_attr': {'class': 'form-label'}}) }}
+                                    {{ form_widget(form.seats, {'attr': {'class': 'form-control'}}) }}
+                                    {{ form_errors(form.seats) }}
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    {{ form_label(form.imageUrl, 'Image URL', {'label_attr': {'class': 'form-label'}}) }}
+                                    {{ form_widget(form.imageUrl, {'attr': {'class': 'form-control'}}) }}
+                                    {{ form_errors(form.imageUrl) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="preview-card">
+                            <h5 class="preview-title">
+                                <i class="bi bi-eye"></i>
+                                Current Preview
+                            </h5>
+                            <div class="preview-content">
+                                <div class="preview-image">
+                                    {% if event.imageUrl %}
+                                        <img src="{{ event.imageUrl }}" alt="{{ event.title }}">
+                                    {% else %}
+                                        <div class="preview-placeholder">
+                                            <i class="bi bi-image"></i>
+                                            <p>No image available</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="preview-info">
+                                    <h6>{{ event.title }}</h6>
+                                    <p>{{ event.date|date('F j, Y - g:i A') }}</p>
+                                    <p>{{ event.location }}</p>
+                                    <p>Seats: {{ event.seats }} ({{ event.availableSeats }} available)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stats-card">
+                            <h5 class="stats-title">
+                                <i class="bi bi-bar-chart"></i>
+                                Event Statistics
+                            </h5>
+                            <div class="stats-list">
+                                <div class="stat-item">
+                                    <span class="stat-label">Total Bookings:</span>
+                                    <span class="stat-value">{{ event.reservations|length }}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Available Seats:</span>
+                                    <span class="stat-value">{{ event.availableSeats }}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Created:</span>
+                                    <span class="stat-value">{{ event.createdAt ? event.createdAt|date('M d, Y') : 'N/A' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-check-circle"></i>
+                        Update Event
+                    </button>
+                    <a href="{{ path('admin_events_index') }}" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-x-circle"></i>
+                        Cancel
+                    </a>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}

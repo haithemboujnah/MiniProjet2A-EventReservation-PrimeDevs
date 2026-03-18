@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{% block title %}Admin - EventBooking{% endblock %}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+        <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+        {% block stylesheets %}{% endblock %}
+    </head>
+    <body>
+        <div class="admin-wrapper">
+            <!-- Sidebar -->
+            <aside class="admin-sidebar">
+                <div class="sidebar-header">
+                    <a href="{{ path('admin_dashboard') }}" class="sidebar-brand">
+                        <i class="bi bi-calendar-event-fill"></i>
+                        <span>EventBooking</span>
+                    </a>
+                </div>
+                
+                <nav class="sidebar-nav">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link {% if app.request.get('_route') == 'admin_dashboard' %}active{% endif %}" 
+                               href="{{ path('admin_dashboard') }}">
+                                <i class="bi bi-speedometer2"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if app.request.get('_route') starts with 'admin_events' %}active{% endif %}" 
+                               href="{{ path('admin_events_index') }}">
+                                <i class="bi bi-calendar-event"></i>
+                                <span>Events</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_home') }}" target="_blank">
+                                <i class="bi bi-eye"></i>
+                                <span>View Site</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                
+                <div class="sidebar-footer">
+                    <div class="admin-info">
+                        <i class="bi bi-shield-lock"></i>
+                        <div class="admin-details">
+                            <span class="admin-name">{{ app.user.fullName ?? app.user.username }}</span>
+                            <span class="admin-role">Administrator</span>
+                        </div>
+                    </div>
+                    <a href="{{ path('admin_logout') }}" class="logout-btn" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Logout</span>
+                    </a>
+                    <form id="logout-form" action="{{ path('admin_logout') }}" method="POST" style="display: none;">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+                    </form>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="admin-main">
+                <div class="admin-header">
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    
+                    <div class="header-search">
+                        <i class="bi bi-search"></i>
+                        <input type="text" placeholder="Search...">
+                    </div>
+                    
+                    <div class="header-actions">
+                        <div class="notification-badge">
+                            <i class="bi bi-bell"></i>
+                            <span class="badge">3</span>
+                        </div>
+                        
+                        <div class="admin-profile">
+                            <div class="profile-info">
+                                <span class="profile-name">{{ app.user.fullName ?? app.user.username }}</span>
+                                <span class="profile-role">Admin</span>
+                            </div>
+                            <div class="profile-avatar">
+                                <i class="bi bi-person-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-content">
+                    <!-- Flash Messages -->
+                    {% for message in app.flashes('success') %}
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+
+                    {% for message in app.flashes('error') %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+
+                    {% for message in app.flashes('warning') %}
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-circle-fill me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+
+                    {% block body %}{% endblock %}
+                </div>
+            </main>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        
+        <script>
+            // Sidebar toggle
+            document.getElementById('sidebarToggle').addEventListener('click', function() {
+                document.querySelector('.admin-wrapper').classList.toggle('sidebar-collapsed');
+            });
+
+            // Auto-dismiss alerts
+            document.addEventListener('DOMContentLoaded', function() {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    setTimeout(() => {
+                        const closeButton = alert.querySelector('.btn-close');
+                        if (closeButton) {
+                            closeButton.click();
+                        }
+                    }, 5000);
+                });
+            });
+
+                // Prevent back button after logout
+            (function() {
+                // Disable browser back/forward cache
+                window.addEventListener('pageshow', function(event) {
+                    if (event.persisted) {
+                        window.location.reload();
+                    }
+                });
+
+                // Check authentication status periodically
+                let lastActivity = Date.now();
+                const sessionTimeout = 30 * 60 * 1000; // 30 minutes
+
+                // Check session every minute
+                setInterval(function() {
+                    if (Date.now() - lastActivity > sessionTimeout) {
+                        // Session expired, redirect to login
+                        window.location.href = '{{ path('admin_login') }}';
+                    }
+                }, 60000);
+
+                // Update last activity on user interaction
+                document.addEventListener('mousemove', function() {
+                    lastActivity = Date.now();
+                });
+                document.addEventListener('keypress', function() {
+                    lastActivity = Date.now();
+                });
+                document.addEventListener('click', function() {
+                    lastActivity = Date.now();
+                });
+
+                // Handle AJAX request failures (if session expired)
+                const originalFetch = window.fetch;
+                window.fetch = function() {
+                    return originalFetch.apply(this, arguments).then(response => {
+                        if (response.status === 401 || response.status === 403) {
+                            window.location.href = '{{ path('admin_login') }}';
+                        }
+                        return response;
+                    });
+                };
+            })();
+        </script>
+        
+        {% block javascripts %}{% endblock %}
+    </body>
+</html>

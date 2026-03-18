@@ -3,8 +3,13 @@
 namespace App\Controller\Api;
 
 use App\Entity\User;
-use App\Repository\UserRepository;
+use App\Entity\RefreshToken;
+use App\Factory\RefreshTokenFactory; // Fix the import path
 use Doctrine\ORM\EntityManagerInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
+use Gesdinet\JWTRefreshTokenBundle\Entity\RefreshToken as BaseRefreshToken;
+use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,6 +21,23 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 #[Route('/api', name: 'api_')]
 class AuthController extends AbstractController
 {
+    private JWTTokenManagerInterface $jwtManager;
+    private RefreshTokenManagerInterface $refreshTokenManager;
+    private JWTEncoderInterface $jwtEncoder;
+    private RefreshTokenFactory $refreshTokenFactory;
+
+    public function __construct(
+        JWTTokenManagerInterface $jwtManager,
+        RefreshTokenManagerInterface $refreshTokenManager,
+        JWTEncoderInterface $jwtEncoder,
+        RefreshTokenFactory $refreshTokenFactory
+    ) {
+        $this->jwtManager = $jwtManager;
+        $this->refreshTokenManager = $refreshTokenManager;
+        $this->jwtEncoder = $jwtEncoder;
+        $this->refreshTokenFactory = $refreshTokenFactory;
+    }
+
     #[Route('/register', name: 'register', methods: ['POST'])]
     public function register(
         Request $request,
@@ -24,6 +46,12 @@ class AuthController extends AbstractController
         ValidatorInterface $validator
     ): JsonResponse {
         $data = json_decode($request->getContent(), true);
+
+        // Check if user already exists
+        $existingUser = $entityManager->getRepository(User::class)->findOneBy(['email' => $data['email'] ?? '']);
+        if ($existingUser) {
+            return $this->json(['error' => 'User already exists'], Response::HTTP_CONFLICT);
+        }
 
         $user = new User();
         $user->setEmail($data['email'] ?? '');
@@ -42,13 +70,22 @@ class AuthController extends AbstractController
         $entityManager->persist($user);
         $entityManager->flush();
 
+        // Generate JWT token
+        $token = $this->jwtManager->create($user);
+        
+        // Create refresh token using factory
+        $refreshToken = $this->refreshTokenFactory->create($user->getUserIdentifier(), 30 * 24 * 3600);
+        $this->refreshTokenManager->save($refreshToken);
+
         return $this->json([
             'message' => 'User registered successfully',
             'user' => [
                 'id' => $user->getId(),
                 'email' => $user->getEmail(),
                 'fullName' => $user->getFullName()
-            ]
+            ],
+            'token' => $token,
+            'refresh_token' => $refreshToken->getRefreshToken()
         ], Response::HTTP_CREATED);
     }
 
@@ -56,6 +93,108 @@ class AuthController extends AbstractController
     public function login(): JsonResponse
     {
         // This method is handled by lexik/jwt-authentication-bundle
+        // The response will be intercepted and modified by the success handler
         return $this->json(['message' => 'Login successful']);
+    }
+
+    #[Route('/logout', name: 'logout', methods: ['POST'])]
+    public function logout(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $token = str_replace('Bearer ', '', $request->headers->get('Authorization', ''));
+        
+        if ($token) {
+            try {
+                // Decode token to get user email
+                $data = $this->jwtEncoder->decode($token);
+                $email = $data['email'] ?? null;
+                
+                if ($email) {
+                    // Remove refresh tokens for this user
+                    $refreshTokens = $entityManager->getRepository(RefreshToken::class)
+                        ->findBy(['username' => $email]);
+                    
+                    foreach ($refreshTokens as $refreshToken) {
+                        $entityManager->remove($refreshToken);
+                    }
+                    $entityManager->flush();
+                }
+            } catch (\Exception $e) {
+                // Token invalid, just proceed with logout
+            }
+        }
+
+        return $this->json(['message' => 'Logged out successfully']);
+    }
+
+    #[Route('/token/refresh', name: 'refresh_token', methods: ['POST'])]
+    public function refreshToken(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $refreshToken = $data['refresh_token'] ?? null;
+
+        if (!$refreshToken) {
+            return $this->json(['error' => 'Refresh token required'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Validate refresh token
+        $tokenEntity = $this->refreshTokenManager->get($refreshToken);
+        
+        if (!$tokenEntity || !$tokenEntity->isValid()) {
+            return $this->json(['error' => 'Invalid refresh token'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        // Get user using EntityManager
+        $user = $entityManager->getRepository(User::class)
+            ->findOneBy(['email' => $tokenEntity->getUsername()]);
+
+        if (!$user) {
+            return $this->json(['error' => 'User not found'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        // Type check
+        if (!$user instanceof User) {
+            return $this->json(['error' => 'Invalid user type'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        // Generate new JWT
+        $newToken = $this->jwtManager->create($user);
+
+        // Generate new refresh token using factory
+        $newRefreshToken = $this->refreshTokenFactory->create($user->getUserIdentifier(), 30 * 24 * 3600);
+        
+        // Save new refresh token
+        $this->refreshTokenManager->save($newRefreshToken);
+
+        // Delete old refresh token
+        $this->refreshTokenManager->delete($tokenEntity);
+
+        return $this->json([
+            'token' => $newToken,
+            'refresh_token' => $newRefreshToken->getRefreshToken()
+        ]);
+    }
+
+    #[Route('/me', name: 'current_user', methods: ['GET'])]
+    public function currentUser(): JsonResponse
+    {
+        $user = $this->getUser();
+        
+        if (!$user) {
+            return $this->json(['error' => 'Not authenticated'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        // Type check to ensure $user is your User entity
+        if (!$user instanceof User) {
+            return $this->json(['error' => 'Invalid user type'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return $this->json([
+            'user' => [
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'fullName' => $user->getFullName(),
+                'roles' => $user->getRoles()
+            ]
+        ]);
     }
 }

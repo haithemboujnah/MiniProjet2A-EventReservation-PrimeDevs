@@ -1,0 +1,149 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}{{ event.title }} - Event Details{% endblock %}
+
+{% block body %}
+    <div class="event-details-page">
+        <div class="page-header">
+            <div class="header-left">
+                <h1 class="page-title">
+                    <i class="bi bi-calendar-event"></i>
+                    {{ event.title }}
+                </h1>
+                <p class="page-subtitle">Event details and management</p>
+            </div>
+            <div class="header-actions">
+                <a href="{{ path('admin_events_edit', {'id': event.id}) }}" class="btn btn-primary">
+                    <i class="bi bi-pencil"></i>
+                    Edit Event
+                </a>
+                <a href="{{ path('admin_event_reservations', {'id': event.id}) }}" class="btn btn-info">
+                    <i class="bi bi-ticket"></i>
+                    View Reservations ({{ total_reservations }})
+                </a>
+                <a href="{{ path('admin_events_index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i>
+                    Back
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Main Event Card -->
+                <div class="details-card">
+                    <div class="event-image-large">
+                        {% if event.imageUrl %}
+                            <img src="{{ event.imageUrl }}" alt="{{ event.title }}">
+                        {% else %}
+                            <div class="no-image-large">
+                                <i class="bi bi-calendar-event"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="details-content">
+                        <h2>{{ event.title }}</h2>
+                        
+                        <div class="event-meta-grid">
+                            <div class="meta-item">
+                                <i class="bi bi-calendar"></i>
+                                <div>
+                                    <strong>Date & Time</strong>
+                                    <span>{{ event.date|date('l, F j, Y') }}</span>
+                                    <span class="text-muted">{{ event.date|date('g:i A') }}</span>
+                                </div>
+                            </div>
+
+                            <div class="meta-item">
+                                <i class="bi bi-geo-alt"></i>
+                                <div>
+                                    <strong>Location</strong>
+                                    <span>{{ event.location }}</span>
+                                </div>
+                            </div>
+
+                            <div class="meta-item">
+                                <i class="bi bi-people"></i>
+                                <div>
+                                    <strong>Capacity</strong>
+                                    <span>{{ event.seats }} total seats</span>
+                                    <span class="text-success">{{ event.availableSeats }} available</span>
+                                </div>
+                            </div>
+
+                            <div class="meta-item">
+                                <i class="bi bi-ticket"></i>
+                                <div>
+                                    <strong>Reservations</strong>
+                                    <span>{{ total_reservations }} bookings</span>
+                                    <span>{{ (total_reservations / event.seats * 100)|round }}% filled</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="description-section">
+                            <h5>Description</h5>
+                            <p>{{ event.description|nl2br }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Status Card -->
+                <div class="status-card">
+                    <h5>Event Status</h5>
+                    <div class="status-info">
+                        {% if event.date > date() %}
+                            <div class="status-badge active">
+                                <i class="bi bi-check-circle"></i>
+                                Active
+                            </div>
+                            <p class="mt-2">This event is currently active and accepting reservations.</p>
+                        {% else %}
+                            <div class="status-badge expired">
+                                <i class="bi bi-clock-history"></i>
+                                Expired
+                            </div>
+                            <p class="mt-2">This event has already passed.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Quick Stats Card -->
+                <div class="stats-card">
+                    <h5>Quick Stats</h5>
+                    <div class="stat-item">
+                        <span>Occupancy Rate</span>
+                        <div class="progress">
+                            <div class="progress-bar" style="width: {{ (total_reservations / event.seats * 100)|round }}%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <span>Reservations Today</span>
+                        <strong>{{ event.reservations|filter(r => r.createdAt|date('Y-m-d') == date()|date('Y-m-d'))|length }}</strong>
+                    </div>
+                </div>
+
+                <!-- Recent Reservations -->
+                <div class="recent-card">
+                    <h5>Recent Reservations</h5>
+                    <div class="recent-list">
+                        {% for reservation in event.reservations|slice(0, 5) %}
+                            <div class="recent-item">
+                                <i class="bi bi-person"></i>
+                                <div>
+                                    <strong>{{ reservation.name }}</strong>
+                                    <small>{{ reservation.createdAt|date('M d, H:i') }}</small>
+                                </div>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No reservations yet</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

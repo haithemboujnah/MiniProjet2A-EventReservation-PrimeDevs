@@ -25,3 +25,25 @@ services:
     App\Service\FileUploader:
         arguments:
             $targetDirectory: '%kernel.project_dir%/public/uploads/events'
+
+    App\Twig\Base64Extension:
+        tags: ['twig.extension']
+
+
+    Webauthn\AttestationStatement\AttestationStatementSupportManager:
+        class: Webauthn\AttestationStatement\AttestationStatementSupportManager
+        calls:
+            - method: add
+              arguments:
+                  - '@Webauthn\AttestationStatement\NoneAttestationStatementSupport'
+
+    Webauthn\AttestationStatement\NoneAttestationStatementSupport:
+        class: Webauthn\AttestationStatement\NoneAttestationStatementSupport
+
+    Webauthn\AuthenticatorAttestationResponseValidator:
+        arguments:
+            $attestationStatementSupportManager: '@Webauthn\AttestationStatement\AttestationStatementSupportManager'
+
+    Webauthn\AuthenticatorAssertionResponseValidator:
+        arguments:
+            $publicKeyCredentialSourceRepository: '@App\Repository\WebauthnCredentialRepository'
