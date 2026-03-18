@@ -1,0 +1,9 @@
+gesdinet_jwt_refresh_token:
+    refresh_token_class: Gesdinet\JWTRefreshTokenBundle\Entity\RefreshToken
+    ttl: '%env(int:JWT_REFRESH_TTL)%'
+    ttl_update: true
+    single_use: true
+    cookie:
+        enabled: false
+    return_expiration: true
+    return_expiration_parameter_name: refresh_token_expiration
