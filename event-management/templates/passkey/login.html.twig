@@ -1,0 +1,335 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Login with Passkey - EventBooking{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .login-container {
+            max-width: 400px;
+            margin: 4rem auto;
+            animation: fadeIn 0.6s ease;
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 2rem;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .login-header i {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+        
+        .login-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .login-header p {
+            color: #666;
+        }
+        
+        .passkey-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .passkey-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+        
+        .passkey-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .passkey-btn:hover::after {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .passkey-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background: #e2e8f0;
+        }
+        
+        .divider::before {
+            left: 0;
+        }
+        
+        .divider::after {
+            right: 0;
+        }
+        
+        .divider span {
+            background: white;
+            padding: 0 1rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .password-login {
+            text-align: center;
+        }
+        
+        .password-login a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.3s;
+        }
+        
+        .password-login a:hover {
+            color: #764ba2;
+        }
+        
+        .error-message {
+            background: #f56565;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <i class="bi bi-shield-lock"></i>
+                <h2>Login with Passkey</h2>
+                <p>Use your fingerprint, Face ID, or security key</p>
+            </div>
+            
+            <div id="errorMessage" class="error-message">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span></span>
+            </div>
+            
+            <button class="passkey-btn" onclick="loginWithPasskey()" id="loginBtn">
+                <i class="bi bi-fingerprint"></i> Use Passkey
+            </button>
+            
+            <div class="divider">
+                <span>OR</span>
+            </div>
+            
+            <div class="password-login">
+                <a href="{{ path('app_login') }}">
+                    <i class="bi bi-box-arrow-in-right"></i> Login with Password
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        async function loginWithPasskey() {
+            const loginBtn = document.getElementById('loginBtn');
+            const originalText = loginBtn.innerHTML;
+            
+            loginBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Authenticating...';
+            loginBtn.disabled = true;
+            
+            try {
+                // Get authentication options
+                const optionsResponse = await fetch('{{ path('app_passkey_login_options') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (!optionsResponse.ok) {
+                    throw new Error('Failed to get login options');
+                }
+                
+                const options = await optionsResponse.json();
+                
+                // Check if any credentials exist
+                if (!options.publicKey.allowCredentials || options.publicKey.allowCredentials.length === 0) {
+                    throw new Error('No passkeys found. Please register a passkey first.');
+                }
+                
+                // Fix options for browser
+                options.publicKey.challenge = base64ToArrayBuffer(options.publicKey.challenge);
+                
+                if (options.publicKey.allowCredentials) {
+                    options.publicKey.allowCredentials.forEach(cred => {
+                        cred.id = base64ToArrayBuffer(cred.id);
+                    });
+                }
+                
+                // Get credential from browser
+                const credential = await navigator.credentials.get(options);
+                
+                if (!credential) {
+                    throw new Error('Authentication cancelled');
+                }
+                
+                // Prepare response for server
+                const response = {
+                    id: credential.id,
+                    rawId: arrayBufferToBase64(credential.rawId),
+                    response: {
+                        authenticatorData: arrayBufferToBase64(credential.response.authenticatorData),
+                        clientDataJSON: arrayBufferToBase64(credential.response.clientDataJSON),
+                        signature: arrayBufferToBase64(credential.response.signature),
+                        userHandle: credential.response.userHandle ? 
+                            arrayBufferToBase64(credential.response.userHandle) : null
+                    },
+                    type: credential.type
+                };
+                
+                // Send to server
+                const verifyResponse = await fetch('{{ path('app_passkey_authenticate') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(response)
+                });
+                
+                const result = await verifyResponse.json();
+                
+                if (result.success) {
+                    window.location.href = result.redirect || '/';
+                } else {
+                    throw new Error(result.error || 'Authentication failed');
+                }
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                showError(error.message || 'Authentication failed. Please try again.');
+            } finally {
+                loginBtn.innerHTML = originalText;
+                loginBtn.disabled = false;
+            }
+        }
+        
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMessage');
+            errorMsg.querySelector('span').textContent = message;
+            errorMsg.style.display = 'flex';
+            
+            setTimeout(() => {
+                errorMsg.style.display = 'none';
+            }, 5000);
+        }
+        
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+        
+        function arrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        }
+        
+        // Add spin animation style
+        const style = document.createElement('style');
+        style.textContent = `
+            .spin {
+                animation: spin 1s linear infinite;
+                display: inline-block;
+            }
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+{% endblock %}

@@ -1,0 +1,352 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Manage Passkeys - EventBooking{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .passkeys-container {
+            max-width: 800px;
+            margin: 2rem auto;
+        }
+        
+        .passkey-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: transform 0.2s;
+        }
+        
+        .passkey-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .passkey-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .passkey-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .passkey-details {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .passkey-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .passkey-meta {
+            font-size: 0.85rem;
+            color: #666;
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .passkey-meta i {
+            margin-right: 0.25rem;
+        }
+        
+        .btn-delete {
+            background: none;
+            border: 2px solid #f56565;
+            color: #f56565;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-delete:hover {
+            background: #f56565;
+            color: white;
+        }
+        
+        .btn-add {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 2rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform 0.2s;
+        }
+        
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-add:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            color: #666;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 0.5rem;
+        }
+        
+        .empty-state p {
+            margin-bottom: 2rem;
+        }
+        
+        .success-message {
+            background: #48bb78;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .error-message {
+            background: #f56565;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container passkeys-container">
+        <h1 class="mb-4">
+            <i class="bi bi-key"></i> Manage Passkeys
+        </h1>
+        
+        <div id="successMessage" class="success-message">
+            <i class="bi bi-check-circle"></i>
+            <span></span>
+        </div>
+        
+        <div id="errorMessage" class="error-message">
+            <i class="bi bi-exclamation-triangle"></i>
+            <span></span>
+        </div>
+        
+        <button class="btn-add" onclick="registerPasskey()" id="registerBtn">
+            <i class="bi bi-plus-circle"></i> Add New Passkey
+        </button>
+        
+        {% if credentials is empty %}
+            <div class="empty-state">
+                <i class="bi bi-shield-lock"></i>
+                <h3>No Passkeys Added</h3>
+                <p>Add a passkey to enable passwordless login with your fingerprint, Face ID, or security key.</p>
+            </div>
+        {% else %}
+            <div class="passkeys-list">
+                {% for credential in credentials %}
+                    <div class="passkey-card">
+                        <div class="passkey-info">
+                            <div class="passkey-icon">
+                                <i class="bi bi-shield-check"></i>
+                            </div>
+                            <div class="passkey-details">
+                                <span class="passkey-name">{{ credential.name }}</span>
+                                <div class="passkey-meta">
+                                    <span>
+                                        <i class="bi bi-calendar"></i> Added: {{ credential.createdAt|date('M j, Y') }}
+                                    </span>
+                                    {% if credential.lastUsedAt %}
+                                        <span>
+                                            <i class="bi bi-clock-history"></i> Last used: {{ credential.lastUsedAt|date('M j, Y') }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <form method="post" action="{{ path('app_passkey_delete', {'id': credential.id}) }}" 
+                              onsubmit="return confirm('Delete this passkey? You may need to set up a new one to log in again.')"
+                              style="display: inline;">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete-passkey') }}">
+                            <button type="submit" class="btn-delete">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://unpkg.com/@github/webauthn-json"></script>
+    <script>
+        async function registerPasskey() {
+            const registerBtn = document.getElementById('registerBtn');
+            const originalText = registerBtn.innerHTML;
+            
+            registerBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Registering...';
+            registerBtn.disabled = true;
+            
+            try {
+                // Get registration options from server
+                const optionsResponse = await fetch('{{ path('app_passkey_register_options') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (!optionsResponse.ok) {
+                    throw new Error('Failed to get registration options');
+                }
+                
+                const options = await optionsResponse.json();
+                
+                // Fix options for browser (convert base64)
+                options.publicKey.challenge = base64ToArrayBuffer(options.publicKey.challenge);
+                options.publicKey.user.id = base64ToArrayBuffer(options.publicKey.user.id);
+                
+                if (options.publicKey.excludeCredentials) {
+                    options.publicKey.excludeCredentials.forEach(cred => {
+                        cred.id = base64ToArrayBuffer(cred.id);
+                    });
+                }
+                
+                // Create credential with browser
+                const credential = await navigator.credentials.create(options);
+                
+                if (!credential) {
+                    throw new Error('Failed to create credential');
+                }
+                
+                // Prepare response for server
+                const attestationObject = arrayBufferToBase64(credential.response.attestationObject);
+                const clientDataJSON = arrayBufferToBase64(credential.response.clientDataJSON);
+                
+                // Send to server
+                const verifyResponse = await fetch('{{ path('app_passkey_register') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        attestationObject: attestationObject,
+                        clientDataJSON: clientDataJSON
+                    })
+                });
+                
+                const result = await verifyResponse.json();
+                
+                if (result.success) {
+                    showMessage('success', 'Passkey added successfully!');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    throw new Error(result.error || 'Registration failed');
+                }
+                
+            } catch (error) {
+                console.error('Registration error:', error);
+                showMessage('error', error.message || 'Registration failed. Please try again.');
+            } finally {
+                registerBtn.innerHTML = originalText;
+                registerBtn.disabled = false;
+            }
+        }
+        
+        function showMessage(type, text) {
+            const successMsg = document.getElementById('successMessage');
+            const errorMsg = document.getElementById('errorMessage');
+            
+            if (type === 'success') {
+                successMsg.querySelector('span').textContent = text;
+                successMsg.style.display = 'flex';
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 3000);
+            } else {
+                errorMsg.querySelector('span').textContent = text;
+                errorMsg.style.display = 'flex';
+                setTimeout(() => {
+                    errorMsg.style.display = 'none';
+                }, 3000);
+            }
+        }
+        
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+        
+        function arrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        }
+        
+        // Add spin animation
+        const style = document.createElement('style');
+        style.textContent = `
+            .spin {
+                animation: spin 1s linear infinite;
+                display: inline-block;
+            }
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+{% endblock %}
