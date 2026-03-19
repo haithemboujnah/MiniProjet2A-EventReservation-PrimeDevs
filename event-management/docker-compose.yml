@@ -1,0 +1,100 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  # PHP Service
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: symfony_php
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+    environment:
+      - APP_ENV=${APP_ENV:-dev}
+      - APP_DEBUG=${APP_DEBUG:-1}
+      - APP_DOMAIN=${APP_DOMAIN:-localhost}
+      - JWT_PASSPHRASE=${JWT_PASSPHRASE:-change_me_in_production}
+      - DATABASE_URL=mysql://${DB_USER:-symfony}:${DB_PASSWORD:-password}@db:3306/${DB_NAME:-symfony}?serverVersion=8.0
+    depends_on:
+      - db
+    networks:
+      - symfony_network
+
+  # Nginx Service
+  nginx:
+    image: nginx:alpine
+    container_name: symfony_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - php
+    networks:
+      - symfony_network
+
+  # Database Service
+  db:
+    image: mysql:8.0
+    container_name: symfony_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-symfony}
+      MYSQL_USER: ${DB_USER:-symfony}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-password}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3306:3306"
+    networks:
+      - symfony_network
+
+  # phpMyAdmin (optional, for development)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: symfony_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 100M
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - symfony_network
+    profiles:
+      - dev
+
+  # Mailhog (for email testing in development)
+  mailhog:
+    image: mailhog/mailhog
+    container_name: symfony_mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - symfony_network
+    profiles:
+      - dev
+
+# Volumes
+volumes:
+  db_data:
+
+# Networks
+networks:
+  symfony_network:
+    driver: bridge

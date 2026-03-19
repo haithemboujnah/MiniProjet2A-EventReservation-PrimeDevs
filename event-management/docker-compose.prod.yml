@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  php:
+    environment:
+      - APP_ENV=prod
+      - APP_DEBUG=0
+    # Add healthcheck
+    healthcheck:
+      test: ["CMD", "php-fpm", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nginx:
+    ports:
+      - "443:443"
+    # Remove port 80 in production
+    # Add rate limiting
+    environment:
+      - NGINX_RATE_LIMIT=10r/s
+
+  db:
+    # Add backup configuration
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./backups:/backups

@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: event_php
+    environment:
+      - APP_ENV=dev
+      - APP_DEBUG=1
+      - JWT_PASSPHRASE=${JWT_PASSPHRASE:-change_me_in_production}
+      - APP_DOMAIN=${APP_DOMAIN:-localhost}
+      - DATABASE_URL=mysql://event_user:event_pass@db:3306/event_db?serverVersion=8.0
+    volumes:
+      - .:/var/www
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/php.ini
+    depends_on:
+      - db
+    networks:
+      - event_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: event_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - php
+    networks:
+      - event_network
+
+  db:
+    image: mysql:8.0
+    container_name: event_db
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-rootpass}
+      - MYSQL_DATABASE=event_db
+      - MYSQL_USER=event_user
+      - MYSQL_PASSWORD=event_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - event_network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: event_phpmyadmin
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - event_network
+
+networks:
+  event_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
