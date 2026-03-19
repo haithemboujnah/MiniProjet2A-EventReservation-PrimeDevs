@@ -11,18 +11,29 @@ L'application utilise des mécanismes modernes d'authentification combinant **JW
 
 ### Côté Utilisateur
 - ✅ Inscription et authentification sécurisées (JWT + Passkeys)
-- ✅ Consultation des événements avec filtres (à venir, passés)
+- ✅ Consultation des événements avec filtres (à venir, passés, recherche)
 - ✅ Détails complets d'un événement (description, date, lieu, image)
 - ✅ Réservation en ligne avec validation
-- ✅ Tableau de bord personnel des réservations
-- ✅ Gestion des passkeys pour une authentification sans mot de passe
+- ✅ Tableau de bord personnel des réservations (à venir / passées)
+- ✅ Gestion des passkeys (WebAuthn) pour une authentification sans mot de passe
+- ✅ Profil utilisateur avec affichage et rafraîchissement du token JWT
+- ✅ Déconnexion sécurisée avec invalidation des tokens
+- ✅ Empêchement du retour arrière après déconnexion
 
 ### Côté Administrateur
-- ✅ Authentification sécurisée dédiée
-- ✅ Dashboard avec statistiques en temps réel
+- ✅ Authentification sécurisée dédiée (formulaire admin)
+- ✅ Dashboard avec statistiques en temps réel (total événements, réservations, etc.)
 - ✅ CRUD complet sur les événements
-- ✅ Consultation et gestion des réservations
-- ✅ Interface admin responsive et moderne
+- ✅ Consultation et gestion des réservations par événement
+- ✅ Interface admin responsive et moderne avec sidebar rétractable
+- ✅ Profil administrateur avec informations personnelles
+- ✅ Notifications en temps réel (icône avec compteur de nouvelles réservations)
+- ✅ Modal de notifications avec liste des réservations récentes
+- ✅ Marquage des notifications comme lues
+- ✅ Filtres et recherche sur la liste des événements
+- ✅ Pagination pour les listes d'événements
+- ✅ Gestion des tokens JWT pour l'admin
+- ✅ Déconnexion sécurisée avec protection contre le retour arrière
 
 ## 🛠️ Technologies
 
