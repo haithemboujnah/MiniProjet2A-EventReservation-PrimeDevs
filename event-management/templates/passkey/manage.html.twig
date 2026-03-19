@@ -8,36 +8,50 @@
         .passkeys-container {
             max-width: 800px;
             margin: 2rem auto;
+            animation: fadeIn 0.6s ease;
+        }
+        
+        .passkeys-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .passkeys-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .passkeys-header i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
         }
         
         .passkey-card {
             background: white;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             padding: 1.5rem;
             margin-bottom: 1rem;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            transition: transform 0.2s;
+            gap: 1rem;
+            transition: all 0.3s ease;
         }
         
         .passkey-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        
-        .passkey-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
         }
         
         .passkey-icon {
-            width: 48px;
-            height: 48px;
+            width: 50px;
+            height: 50px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -45,207 +59,359 @@
             font-size: 1.5rem;
         }
         
-        .passkey-details {
-            display: flex;
-            flex-direction: column;
+        .passkey-info {
+            flex: 1;
         }
         
         .passkey-name {
             font-weight: 600;
-            font-size: 1.1rem;
+            color: #2d3748;
             margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .passkey-badge {
+            font-size: 0.7rem;
+            background: #48bb78;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 50px;
         }
         
         .passkey-meta {
+            color: #718096;
             font-size: 0.85rem;
-            color: #666;
-            display: flex;
-            gap: 1rem;
         }
         
         .passkey-meta i {
             margin-right: 0.25rem;
         }
         
+        .passkey-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
         .btn-delete {
-            background: none;
+            background: transparent;
             border: 2px solid #f56565;
             color: #f56565;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
         
         .btn-delete:hover {
             background: #f56565;
             color: white;
+            transform: translateY(-2px);
         }
         
-        .btn-add {
+        .btn-register {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             padding: 0.75rem 1.5rem;
             border-radius: 8px;
             font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 2rem;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            transition: transform 0.2s;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
         }
         
-        .btn-add:hover {
+        .btn-register:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn-add:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
         
         .empty-state {
             text-align: center;
             padding: 3rem;
-            background: #f8f9fa;
+            background: white;
             border-radius: 12px;
-            color: #666;
+            color: #718096;
         }
         
         .empty-state i {
             font-size: 4rem;
+            margin-bottom: 1rem;
+            color: #cbd5e0;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            animation: slideUp 0.3s ease;
+        }
+        
+        .modal-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-header i {
+            font-size: 3rem;
             color: #667eea;
             margin-bottom: 1rem;
         }
         
-        .empty-state h3 {
+        .modal-header h3 {
+            font-size: 1.5rem;
             margin-bottom: 0.5rem;
         }
         
-        .empty-state p {
-            margin-bottom: 2rem;
+        .modal-body {
+            margin-bottom: 1.5rem;
         }
         
-        .success-message {
-            background: #48bb78;
-            color: white;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            display: none;
-            align-items: center;
-            gap: 0.5rem;
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
         }
         
-        .error-message {
-            background: #f56565;
-            color: white;
-            padding: 1rem;
+        .modal-btn {
+            flex: 1;
+            padding: 0.75rem;
             border-radius: 8px;
-            margin-bottom: 1rem;
-            display: none;
-            align-items: center;
-            gap: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-cancel {
+            background: #e2e8f0;
+            border: none;
+            color: #4a5568;
+        }
+        
+        .btn-confirm {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 {% endblock %}
 
 {% block body %}
-    <div class="container passkeys-container">
-        <h1 class="mb-4">
-            <i class="bi bi-key"></i> Manage Passkeys
-        </h1>
-        
-        <div id="successMessage" class="success-message">
-            <i class="bi bi-check-circle"></i>
-            <span></span>
+    <div class="passkeys-container">
+        <div class="passkeys-header">
+            <i class="bi bi-shield-lock"></i>
+            <h1>Manage Your Passkeys</h1>
+            <p>Add or remove passkeys for passwordless login</p>
         </div>
         
-        <div id="errorMessage" class="error-message">
-            <i class="bi bi-exclamation-triangle"></i>
-            <span></span>
-        </div>
-        
-        <button class="btn-add" onclick="registerPasskey()" id="registerBtn">
-            <i class="bi bi-plus-circle"></i> Add New Passkey
+        <button class="btn-register" onclick="showRegisterModal()">
+            <i class="bi bi-plus-circle"></i>
+            Register New Passkey
         </button>
         
-        {% if credentials is empty %}
-            <div class="empty-state">
-                <i class="bi bi-shield-lock"></i>
-                <h3>No Passkeys Added</h3>
-                <p>Add a passkey to enable passwordless login with your fingerprint, Face ID, or security key.</p>
-            </div>
-        {% else %}
-            <div class="passkeys-list">
-                {% for credential in credentials %}
-                    <div class="passkey-card">
-                        <div class="passkey-info">
-                            <div class="passkey-icon">
-                                <i class="bi bi-shield-check"></i>
-                            </div>
-                            <div class="passkey-details">
-                                <span class="passkey-name">{{ credential.name }}</span>
-                                <div class="passkey-meta">
-                                    <span>
-                                        <i class="bi bi-calendar"></i> Added: {{ credential.createdAt|date('M j, Y') }}
-                                    </span>
-                                    {% if credential.lastUsedAt %}
-                                        <span>
-                                            <i class="bi bi-clock-history"></i> Last used: {{ credential.lastUsedAt|date('M j, Y') }}
-                                        </span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        <form method="post" action="{{ path('app_passkey_delete', {'id': credential.id}) }}" 
-                              onsubmit="return confirm('Delete this passkey? You may need to set up a new one to log in again.')"
-                              style="display: inline;">
-                            <input type="hidden" name="_token" value="{{ csrf_token('delete-passkey') }}">
-                            <button type="submit" class="btn-delete">
-                                <i class="bi bi-trash"></i> Delete
-                            </button>
-                        </form>
+        {% if passkeys|length > 0 %}
+            {% for passkey in passkeys %}
+                <div class="passkey-card" id="passkey-{{ passkey.id }}">
+                    <div class="passkey-icon">
+                        <i class="bi bi-fingerprint"></i>
                     </div>
-                {% endfor %}
+                    <div class="passkey-info">
+                        <div class="passkey-name">
+                            {{ passkey.name }}
+                            {% if loop.first %}
+                                <span class="passkey-badge">Primary</span>
+                            {% endif %}
+                        </div>
+                        <div class="passkey-meta">
+                            <i class="bi bi-calendar"></i> Added: {{ passkey.createdAt|date('M d, Y') }}
+                            {% if passkey.lastUsedAt %}
+                                • <i class="bi bi-clock"></i> Last used: {{ passkey.lastUsedAt|date('M d, Y') }}
+                            {% endif %}
+                        </div>
+                        <div class="passkey-meta">
+                            <i class="bi bi-device"></i> 
+                            {% if 'platform' in passkey.transports %}
+                                Built-in (Face ID / Touch ID)
+                            {% else %}
+                                Security Key
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="passkey-actions">
+                        <button class="btn-delete" onclick="confirmDelete({{ passkey.id }})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-shield-slash"></i>
+                <h3>No Passkeys Registered</h3>
+                <p>Register a passkey to enable passwordless login</p>
             </div>
         {% endif %}
+    </div>
+    
+    <!-- Register Modal -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="bi bi-fingerprint"></i>
+                <h3>Register New Passkey</h3>
+                <p>Use your biometrics or security key</p>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="passkeyName" placeholder="Enter a name for this passkey (e.g., My iPhone, USB Key)" 
+                       style="width: 100%; padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 8px; margin-bottom: 1rem;">
+                <div id="registerError" style="color: #f56565; font-size: 0.9rem; display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn btn-cancel" onclick="hideRegisterModal()">Cancel</button>
+                <button class="modal-btn btn-confirm" onclick="registerPasskey()" id="registerBtn">
+                    Register
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="bi bi-exclamation-triangle" style="color: #f56565;"></i>
+                <h3>Delete Passkey</h3>
+                <p>Are you sure you want to delete this passkey?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn btn-cancel" onclick="hideDeleteModal()">Cancel</button>
+                <button class="modal-btn btn-confirm" onclick="deletePasskey()" id="deleteBtn">
+                    Delete
+                </button>
+            </div>
+        </div>
     </div>
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="https://unpkg.com/@github/webauthn-json"></script>
     <script>
+        let currentDeleteId = null;
+        
+        function showRegisterModal() {
+            document.getElementById('registerModal').classList.add('active');
+        }
+        
+        function hideRegisterModal() {
+            document.getElementById('registerModal').classList.remove('active');
+            document.getElementById('passkeyName').value = '';
+            document.getElementById('registerError').style.display = 'none';
+        }
+        
+        function confirmDelete(id) {
+            currentDeleteId = id;
+            document.getElementById('deleteModal').classList.add('active');
+        }
+        
+        function hideDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+            currentDeleteId = null;
+        }
+        
         async function registerPasskey() {
+            const name = document.getElementById('passkeyName').value;
+            if (!name) {
+                showError('Please enter a name for this passkey');
+                return;
+            }
+            
             const registerBtn = document.getElementById('registerBtn');
             const originalText = registerBtn.innerHTML;
-            
-            registerBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Registering...';
+            registerBtn.innerHTML = '<span class="loading"></span> Registering...';
             registerBtn.disabled = true;
             
             try {
-                // Get registration options from server
+                // Get registration options
                 const optionsResponse = await fetch('{{ path('app_passkey_register_options') }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                    }
+                    },
+                    body: JSON.stringify({
+                        email: '{{ app.user.email }}'
+                    })
                 });
                 
                 if (!optionsResponse.ok) {
-                    throw new Error('Failed to get registration options');
+                    const error = await optionsResponse.json();
+                    throw new Error(error.error || 'Failed to get registration options');
                 }
                 
                 const options = await optionsResponse.json();
                 
-                // Fix options for browser (convert base64)
+                // Fix options for browser
                 options.publicKey.challenge = base64ToArrayBuffer(options.publicKey.challenge);
                 options.publicKey.user.id = base64ToArrayBuffer(options.publicKey.user.id);
                 
@@ -255,16 +421,23 @@
                     });
                 }
                 
-                // Create credential with browser
+                // Create credential
                 const credential = await navigator.credentials.create(options);
                 
-                if (!credential) {
-                    throw new Error('Failed to create credential');
-                }
-                
                 // Prepare response for server
-                const attestationObject = arrayBufferToBase64(credential.response.attestationObject);
-                const clientDataJSON = arrayBufferToBase64(credential.response.clientDataJSON);
+                const response = {
+                    name: name,
+                    credential: {
+                        id: credential.id,
+                        type: credential.type,
+                        rawId: arrayBufferToBase64(credential.rawId),
+                        response: {
+                            clientDataJSON: arrayBufferToBase64(credential.response.clientDataJSON),
+                            attestationObject: arrayBufferToBase64(credential.response.attestationObject),
+                            transports: credential.response.getTransports ? credential.response.getTransports() : []
+                        }
+                    }
+                };
                 
                 // Send to server
                 const verifyResponse = await fetch('{{ path('app_passkey_register') }}', {
@@ -272,49 +445,70 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        attestationObject: attestationObject,
-                        clientDataJSON: clientDataJSON
-                    })
+                    body: JSON.stringify(response)
                 });
                 
                 const result = await verifyResponse.json();
                 
                 if (result.success) {
-                    showMessage('success', 'Passkey added successfully!');
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
+                    location.reload();
                 } else {
                     throw new Error(result.error || 'Registration failed');
                 }
                 
             } catch (error) {
                 console.error('Registration error:', error);
-                showMessage('error', error.message || 'Registration failed. Please try again.');
+                showError(error.message);
             } finally {
                 registerBtn.innerHTML = originalText;
                 registerBtn.disabled = false;
             }
         }
         
-        function showMessage(type, text) {
-            const successMsg = document.getElementById('successMessage');
-            const errorMsg = document.getElementById('errorMessage');
+        async function deletePasskey() {
+            if (!currentDeleteId) return;
             
-            if (type === 'success') {
-                successMsg.querySelector('span').textContent = text;
-                successMsg.style.display = 'flex';
-                setTimeout(() => {
-                    successMsg.style.display = 'none';
-                }, 3000);
-            } else {
-                errorMsg.querySelector('span').textContent = text;
-                errorMsg.style.display = 'flex';
-                setTimeout(() => {
-                    errorMsg.style.display = 'none';
-                }, 3000);
+            const deleteBtn = document.getElementById('deleteBtn');
+            const originalText = deleteBtn.innerHTML;
+            deleteBtn.innerHTML = '<span class="loading"></span> Deleting...';
+            deleteBtn.disabled = true;
+            
+            try {
+                const formData = new FormData();
+                formData.append('_token', '{{ csrf_token('delete-passkey') }}');
+                
+                const response = await fetch('{{ path('app_passkey_delete', {'id': 0}) }}' + currentDeleteId, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById(`passkey-${currentDeleteId}`).remove();
+                    hideDeleteModal();
+                    
+                    // Check if no passkeys left
+                    if (document.querySelectorAll('.passkey-card').length === 0) {
+                        location.reload();
+                    }
+                } else {
+                    throw new Error(result.error || 'Delete failed');
+                }
+                
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert('Failed to delete passkey: ' + error.message);
+            } finally {
+                deleteBtn.innerHTML = originalText;
+                deleteBtn.disabled = false;
             }
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('registerError');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
         }
         
         function base64ToArrayBuffer(base64) {
@@ -335,18 +529,11 @@
             return window.btoa(binary);
         }
         
-        // Add spin animation
-        const style = document.createElement('style');
-        style.textContent = `
-            .spin {
-                animation: spin 1s linear infinite;
-                display: inline-block;
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
             }
-            @keyframes spin {
-                from { transform: rotate(0deg); }
-                to { transform: rotate(360deg); }
-            }
-        `;
-        document.head.appendChild(style);
+        }
     </script>
 {% endblock %}

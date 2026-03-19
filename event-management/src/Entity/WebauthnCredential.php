@@ -2,63 +2,45 @@
 
 namespace App\Entity;
 
+use App\Repository\WebauthnCredentialRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
-use Webauthn\PublicKeyCredentialSource;
-use Webauthn\TrustPath\TrustPathLoader;
 
-#[ORM\Entity]
-#[ORM\Table(name: 'webauthn_credentials')]
-#[ORM\Index(name: 'credential_id_idx', columns: ['credential_id'])]
+#[ORM\Entity(repositoryClass: WebauthnCredentialRepository::class)]
+#[ORM\Table(name: 'webauthn_credential')]
 class WebauthnCredential
 {
     #[ORM\Id]
-    #[ORM\Column(type: 'uuid', unique: true)]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
-    private ?Uuid $id = null;
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'webauthnCredentials')]
+    #[ORM\ManyToOne(inversedBy: 'webauthnCredentials')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
-    private string $credentialId;
+    #[ORM\Column(length: 500)]
+    private ?string $credentialId = null;
 
-    #[ORM\Column(type: 'binary', length: 255)]
-    private $publicKeyCredentialId;
+    #[ORM\Column(length: 255)]
+    private ?string $type = 'public-key';
 
-    #[ORM\Column(type: 'string', length: 255)]
-    private string $type;
+    #[ORM\Column(type: 'json')]
+    private array $transports = [];
+
+    #[ORM\Column(length: 255)]
+    private ?string $attestationType = null;
 
     #[ORM\Column(type: 'text')]
-    private string $transports;
+    private ?string $credentialSource = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
-    private string $attestationType;
-
-    #[ORM\Column(type: 'json')]
-    private array $trustPath;
-
-    #[ORM\Column(type: 'binary', length: 255)]
-    private $aaguid;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    private string $credentialPublicKey;
-
-    #[ORM\Column(type: 'bigint')]
-    private int $counter;
-
-    #[ORM\Column(type: 'json')]
-    private array $otherUi;
-
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(type: 'datetime_immutable')]
+    #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $lastUsedAt = null;
 
     public function __construct()
@@ -66,7 +48,7 @@ class WebauthnCredential
         $this->createdAt = new \DateTimeImmutable();
     }
 
-    public function getId(): ?Uuid
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -76,119 +58,64 @@ class WebauthnCredential
         return $this->user;
     }
 
-    public function setUser(?User $user): self
+    public function setUser(?User $user): static
     {
         $this->user = $user;
         return $this;
     }
 
-    public function getCredentialId(): string
+    public function getCredentialId(): ?string
     {
         return $this->credentialId;
     }
 
-    public function setCredentialId(string $credentialId): self
+    public function setCredentialId(string $credentialId): static
     {
         $this->credentialId = $credentialId;
         return $this;
     }
 
-    public function getPublicKeyCredentialId()
-    {
-        return $this->publicKeyCredentialId;
-    }
-
-    public function setPublicKeyCredentialId($publicKeyCredentialId): self
-    {
-        $this->publicKeyCredentialId = $publicKeyCredentialId;
-        return $this;
-    }
-
-    public function getType(): string
+    public function getType(): ?string
     {
         return $this->type;
     }
 
-    public function setType(string $type): self
+    public function setType(string $type): static
     {
         $this->type = $type;
         return $this;
     }
 
-    public function getTransports(): string
+    public function getTransports(): array
     {
         return $this->transports;
     }
 
-    public function setTransports(string $transports): self
+    public function setTransports(array $transports): static
     {
         $this->transports = $transports;
         return $this;
     }
 
-    public function getAttestationType(): string
+    public function getAttestationType(): ?string
     {
         return $this->attestationType;
     }
 
-    public function setAttestationType(string $attestationType): self
+    public function setAttestationType(string $attestationType): static
     {
         $this->attestationType = $attestationType;
         return $this;
     }
 
-    public function getTrustPath(): array
+    public function getCredentialSource(): ?string
     {
-        return $this->trustPath;
+        return $this->credentialSource;
     }
 
-    public function setTrustPath(array $trustPath): self
+    public function setCredentialSource(string $credentialSource): static
     {
-        $this->trustPath = $trustPath;
-        return $this;
-    }
-
-    public function getAaguid()
-    {
-        return $this->aaguid;
-    }
-
-    public function setAaguid($aaguid): self
-    {
-        $this->aaguid = $aaguid;
-        return $this;
-    }
-
-    public function getCredentialPublicKey(): string
-    {
-        return $this->credentialPublicKey;
-    }
-
-    public function setCredentialPublicKey(string $credentialPublicKey): self
-    {
-        $this->credentialPublicKey = $credentialPublicKey;
-        return $this;
-    }
-
-    public function getCounter(): int
-    {
-        return $this->counter;
-    }
-
-    public function setCounter(int $counter): self
-    {
-        $this->counter = $counter;
-        return $this;
-    }
-
-    public function getOtherUi(): array
-    {
-        return $this->otherUi;
-    }
-
-    public function setOtherUi(array $otherUi): self
-    {
-        $this->otherUi = $otherUi;
+        $this->credentialSource = $credentialSource;
         return $this;
     }
 
@@ -197,7 +124,7 @@ class WebauthnCredential
         return $this->name;
     }
 
-    public function setName(?string $name): self
+    public function setName(string $name): static
     {
         $this->name = $name;
         return $this;
@@ -208,7 +135,7 @@ class WebauthnCredential
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): self
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
         return $this;
@@ -219,56 +146,9 @@ class WebauthnCredential
         return $this->lastUsedAt;
     }
 
-    public function setLastUsedAt(?\DateTimeImmutable $lastUsedAt): self
+    public function setLastUsedAt(?\DateTimeImmutable $lastUsedAt): static
     {
         $this->lastUsedAt = $lastUsedAt;
         return $this;
-    }
-
-    public function touch(): self
-    {
-        $this->lastUsedAt = new \DateTimeImmutable();
-        return $this;
-    }
-
-    public function toPublicKeyCredentialSource(): PublicKeyCredentialSource
-    {
-        // Handle transports properly - ensure it's an array
-        $transports = [];
-        if (!empty($this->transports)) {
-            $decoded = json_decode($this->transports, true);
-            $transports = is_array($decoded) ? $decoded : [];
-        }
-
-        return new PublicKeyCredentialSource(
-            $this->credentialId,
-            $this->type,
-            $transports,
-            $this->attestationType,
-            TrustPathLoader::loadTrustPath($this->trustPath),
-            $this->aaguid,
-            $this->credentialPublicKey,
-            $this->user->getId(),
-            $this->counter,
-            $this->otherUi
-        );
-    }
-
-    public static function fromPublicKeyCredentialSource(PublicKeyCredentialSource $source, User $user): self
-    {
-        $credential = new self();
-        $credential->setUser($user);
-        $credential->setCredentialId($source->getPublicKeyCredentialId());
-        $credential->setPublicKeyCredentialId($source->getPublicKeyCredentialId());
-        $credential->setType($source->getType());
-        $credential->setTransports(json_encode($source->getTransports()));
-        $credential->setAttestationType($source->getAttestationType());
-        $credential->setTrustPath($source->getTrustPath()->jsonSerialize());
-        $credential->setAaguid($source->getAaguid());
-        $credential->setCredentialPublicKey($source->getCredentialPublicKey());
-        $credential->setCounter($source->getCounter());
-        $credential->setOtherUi($source->getOtherUI());
-
-        return $credential;
     }
 }

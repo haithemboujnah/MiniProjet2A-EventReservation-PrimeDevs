@@ -3,28 +3,27 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Admin;
-use App\Form\Admin\AdminLoginType;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
-use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Entity\Event;
+use App\Entity\Reservation;
 use App\Entity\RefreshToken;
+use App\Form\Admin\AdminLoginType;
 use App\Form\Admin\EventType;
 use App\Repository\EventRepository;
 use App\Repository\ReservationRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\Event;
-use App\Entity\Reservation;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/admin')]
-#[IsGranted('ROLE_ADMIN')]
 class AdminAuthController extends AbstractController
 {
     private JWTTokenManagerInterface $jwtManager;
@@ -44,7 +43,6 @@ class AdminAuthController extends AbstractController
     #[Route('/login', name: 'admin_login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
-        // If already logged in as admin, redirect to dashboard
         if ($this->isGranted('ROLE_ADMIN')) {
             return $this->redirectToRoute('admin_dashboard');
         }
@@ -70,8 +68,6 @@ class AdminAuthController extends AbstractController
     #[Route('/create-admin', name: 'admin_create')]
     public function createAdmin(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
     {
-        // This route should be disabled in production or protected by IP restriction
-        // For now, we'll check if any admin exists
         $adminRepo = $entityManager->getRepository(Admin::class);
         $adminCount = $adminRepo->count([]);
 
@@ -84,6 +80,12 @@ class AdminAuthController extends AbstractController
             $password = $request->request->get('password');
             $email = $request->request->get('email');
             $fullName = $request->request->get('full_name');
+
+            $existingAdmin = $adminRepo->findOneBy(['username' => $username]);
+            if ($existingAdmin) {
+                $this->addFlash('error', 'Username already exists');
+                return $this->redirectToRoute('admin_create');
+            }
 
             $admin = new Admin();
             $admin->setUsername($username);
@@ -103,22 +105,20 @@ class AdminAuthController extends AbstractController
     }
 
     #[Route('/profile', name: 'admin_profile')]
+    #[IsGranted('ROLE_ADMIN')]
     public function profile(Request $request, EntityManagerInterface $entityManager): Response
     {
         $admin = $this->getUser();
         
-        // Type check to ensure $admin is your Admin entity
+
         if (!$admin instanceof Admin) {
             throw $this->createAccessDeniedException('Invalid admin type');
         }
-        
-        // Generate JWT token for admin (optional, if you want API access for admin)
+
         $jwtToken = $this->generateAdminToken($admin, $request, $entityManager);
         
-        // Get admin statistics
         $stats = $this->getAdminStats($entityManager);
         
-        // Get recent activity
         $recentActivity = $this->getRecentActivity($entityManager);
         
         return $this->render('admin/profile.html.twig', [
@@ -130,6 +130,7 @@ class AdminAuthController extends AbstractController
     }
 
     #[Route('/api/token', name: 'admin_api_token', methods: ['GET'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function getApiToken(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $admin = $this->getUser();
@@ -152,6 +153,7 @@ class AdminAuthController extends AbstractController
     }
 
     #[Route('/api/token/refresh', name: 'admin_refresh_token', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function refreshApiToken(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $admin = $this->getUser();
@@ -160,8 +162,6 @@ class AdminAuthController extends AbstractController
             return $this->json(['error' => 'Invalid admin type'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
         
-        // For admin, we'll just generate a new token without refresh token logic
-        // (since admin panel is session-based, but API access might need tokens)
         $jwtToken = $this->jwtManager->create($admin);
         
         return $this->json([
@@ -171,18 +171,13 @@ class AdminAuthController extends AbstractController
 
     private function generateAdminToken(Admin $admin, Request $request, EntityManagerInterface $entityManager): ?string
     {
-        // Check if token exists in session
         $jwtToken = $request->getSession()->get('admin_jwt_token');
         
         if (!$jwtToken) {
-            // Generate new token
             $jwtToken = $this->jwtManager->create($admin);
             
-            // Store in session
             $request->getSession()->set('admin_jwt_token', $jwtToken);
             
-            // You could also create refresh tokens for admin if needed
-            // Similar to user flow
         }
         
         return $jwtToken;
@@ -206,7 +201,6 @@ class AdminAuthController extends AbstractController
 
     private function getRecentActivity(EntityManagerInterface $entityManager): array
     {
-        // Get recent reservations and events
         $reservationRepo = $entityManager->getRepository(Reservation::class);
         $eventRepo = $entityManager->getRepository(Event::class);
         

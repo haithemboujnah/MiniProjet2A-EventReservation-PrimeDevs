@@ -23,17 +23,13 @@ class AdminController extends AbstractController
     #[Route('/', name: 'admin_dashboard')]
     public function dashboard(EventRepository $eventRepository, ReservationRepository $reservationRepository): Response
     {
-        // Get all events
         $allEvents = $eventRepository->findAll();
         
-        // Get upcoming and past events using repository methods
         $upcomingEvents = $eventRepository->findUpcomingEvents();
         $pastEvents = $eventRepository->findPastEvents();
         
-        // Get recent reservations
         $recentReservations = $reservationRepository->findBy([], ['createdAt' => 'DESC'], 5);
         
-        // Get recent events
         $recentEvents = $eventRepository->findBy([], ['date' => 'DESC'], 5);
         
         $stats = [
@@ -116,7 +112,6 @@ class AdminController extends AbstractController
     public function eventsDelete(Request $request, Event $event, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete' . $event->getId(), $request->request->get('_token'))) {
-            // Check if event has reservations
             if (count($event->getReservations()) > 0) {
                 $this->addFlash('error', 'Cannot delete event with existing reservations.');
                 return $this->redirectToRoute('admin_events_show', ['id' => $event->getId()]);
@@ -160,7 +155,6 @@ class AdminController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
         
-        // Get recent reservations (last 24 hours)
         $since = (new \DateTime())->modify('-24 hours');
         $recentReservations = $reservationRepository->createQueryBuilder('r')
             ->where('r.createdAt >= :since')
@@ -169,8 +163,6 @@ class AdminController extends AbstractController
             ->getQuery()
             ->getResult();
         
-        // Get total unread (you can implement an "is_read" field if needed)
-        // For now, we'll just return all recent reservations
         $totalNew = count($recentReservations);
         
         $notifications = array_map(function($reservation) {
@@ -197,9 +189,6 @@ class AdminController extends AbstractController
         
         $data = json_decode($request->getContent(), true);
         $ids = $data['ids'] ?? [];
-        
-        // Here you would mark notifications as read in your database
-        // For now, we'll just return success
         
         return $this->json(['success' => true]);
     }

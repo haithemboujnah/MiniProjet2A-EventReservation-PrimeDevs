@@ -24,7 +24,6 @@ class PasskeyController extends AbstractController
         private WebauthnCredentialRepository $credentialRepository,
         private EntityManagerInterface $entityManager
     ) {
-        // Start session if not already started
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
@@ -42,7 +41,7 @@ class PasskeyController extends AbstractController
         $credentials = $this->credentialRepository->findCredentialsForUser($user);
 
         return $this->render('passkey/manage.html.twig', [
-            'credentials' => $credentials,
+            'passkeys' => $credentials,
             'user' => $user
         ]);
     }
@@ -75,7 +74,6 @@ class PasskeyController extends AbstractController
     #[Route('/login', name: 'app_passkey_login')]
     public function login(): Response
     {
-        // Redirect if already logged in
         if ($this->getUser()) {
             return $this->redirectToRoute('app_home');
         }
@@ -94,7 +92,10 @@ class PasskeyController extends AbstractController
 
         try {
             $options = $this->webAuthnService->getRegistrationOptions($user);
-            return $this->json($options);
+            
+            return $this->json([
+                'publicKey' => $options
+            ]);
         } catch (\Exception $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
@@ -139,7 +140,10 @@ class PasskeyController extends AbstractController
     {
         try {
             $options = $this->webAuthnService->getAuthenticationOptions();
-            return $this->json($options);
+            
+            return $this->json([
+                'publicKey' => $options
+            ]);
         } catch (\Exception $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
@@ -155,7 +159,6 @@ class PasskeyController extends AbstractController
         }
 
         try {
-            // Process authentication
             $user = $this->webAuthnService->processAuthentication(
                 $data['rawId'],
                 $data['response']['clientDataJSON'],
@@ -163,15 +166,12 @@ class PasskeyController extends AbstractController
                 $data['response']['signature']
             );
 
-            // Log the user in manually
             $token = new UsernamePasswordToken($user, 'main', $user->getRoles());
             $this->container->get('security.token_storage')->setToken($token);
             
-            // Fire login event
             $event = new InteractiveLoginEvent($request, $token);
             $this->container->get('event_dispatcher')->dispatch($event);
 
-            // Store in session
             $request->getSession()->set('_security_main', serialize($token));
 
             return $this->json([

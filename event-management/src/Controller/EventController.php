@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Event;
 use App\Entity\Reservation;
-use App\Entity\User; // Add this import
+use App\Entity\User;
 use App\Form\ReservationType;
 use App\Repository\EventRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,7 +20,6 @@ class EventController extends AbstractController
     {
         $upcomingEvents = $eventRepository->findUpcomingEvents();
         
-        // Get only the next 6 events for the homepage
         $upcomingEvents = array_slice($upcomingEvents, 0, 6);
 
         return $this->render('event/index.html.twig', [
@@ -34,9 +33,8 @@ class EventController extends AbstractController
         $filter = $request->query->get('filter', 'all');
         $search = $request->query->get('search', '');
         $page = max(1, $request->query->getInt('page', 1));
-        $limit = 4; // 4 events per page
+        $limit = 4; 
 
-        // Get events based on filter
         switch ($filter) {
             case 'upcoming':
                 $allEvents = $eventRepository->findUpcomingEvents();
@@ -48,7 +46,6 @@ class EventController extends AbstractController
                 $allEvents = $eventRepository->findAllOrderedByDate();
         }
 
-        // Filter by search term if provided
         if (!empty($search)) {
             $allEvents = array_filter($allEvents, function($event) use ($search) {
                 return stripos($event->getTitle(), $search) !== false || 
@@ -57,11 +54,9 @@ class EventController extends AbstractController
             });
         }
 
-        // Calculate pagination
         $totalEvents = count($allEvents);
         $totalPages = ceil($totalEvents / $limit);
         
-        // Slice array for current page
         $offset = ($page - 1) * $limit;
         $events = array_slice($allEvents, $offset, $limit);
 
@@ -85,38 +80,29 @@ class EventController extends AbstractController
     #[Route('/event/{id}/reserve', name: 'app_event_reserve')]
     public function reserve(Request $request, Event $event, EntityManagerInterface $entityManager): Response
     {
-        // Check if user is logged in
         if (!$this->getUser()) {
-            // Store the intended reservation URL in session
             $request->getSession()->set('redirect_after_login', $request->getUri());
             
-            // Add a flash message
             $this->addFlash('warning', 'Please login to make a reservation');
             
-            // Redirect to login page
             return $this->redirectToRoute('app_login');
         }
 
-        // Check if event has available seats
         if ($event->getAvailableSeats() <= 0) {
             $this->addFlash('error', 'No available seats for this event.');
             return $this->redirectToRoute('app_event_show', ['id' => $event->getId()]);
         }
 
-        // Get the authenticated user and type-hint it as your User entity
         $user = $this->getUser();
         
-        // Ensure the user is an instance of your User entity
         if (!$user instanceof User) {
             throw $this->createAccessDeniedException('Invalid user type');
         }
 
-        // Pre-fill form with user data
         $reservation = new Reservation();
         $reservation->setEvent($event);
         $reservation->setName($user->getFullName());
         $reservation->setEmail($user->getEmail());
-        // Phone is left empty as it might not be in User entity
 
         $form = $this->createForm(ReservationType::class, $reservation);
         $form->handleRequest($request);

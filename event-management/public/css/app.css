@@ -420,14 +420,10 @@ body {
 .footer-bottom-content {
     display: flex;
     justify-content: space-between;
+    text-align: center;
     align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
-}
-
-.copyright {
-    color: var(--gray-400);
-    margin: auto;
 }
 
 .footer-bottom-links {
@@ -720,6 +716,7 @@ body {
 
 .copyright {
     color: rgba(255, 255, 255, 0.6);
-    margin: 0;
+    margin: auto;
     font-size: 0.9rem;
+    text-align: center;
 }

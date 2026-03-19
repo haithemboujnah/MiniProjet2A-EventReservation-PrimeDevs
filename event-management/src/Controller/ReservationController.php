@@ -15,22 +15,18 @@ class ReservationController extends AbstractController
     #[Route('/', name: 'app_my_reservations')]
     public function index(ReservationRepository $reservationRepository): Response
     {
-        // Get the current logged-in user
         $user = $this->getUser();
         
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
 
-        // Type-hint that $user is our User entity
         if (!$user instanceof User) {
             throw $this->createAccessDeniedException('Invalid user type');
         }
 
-        // Get user's reservations through email (since reservation stores email)
         $reservations = $reservationRepository->findByEmail($user->getEmail());
 
-        // Separate upcoming and past reservations
         $now = new \DateTime();
         $upcomingReservations = [];
         $pastReservations = [];
@@ -58,7 +54,6 @@ class ReservationController extends AbstractController
             throw $this->createNotFoundException('Reservation not found');
         }
 
-        // Security check - ensure the reservation belongs to the current user
         $user = $this->getUser();
         
         if (!$user) {
@@ -87,7 +82,6 @@ class ReservationController extends AbstractController
             throw $this->createNotFoundException('Reservation not found');
         }
 
-        // Security check
         $user = $this->getUser();
         
         if (!$user) {
@@ -102,13 +96,11 @@ class ReservationController extends AbstractController
             throw $this->createAccessDeniedException('Access denied');
         }
 
-        // Check if event is in the future
         if ($reservation->getEvent()->getDate() <= new \DateTime()) {
             $this->addFlash('error', 'Cannot cancel past events');
             return $this->redirectToRoute('app_my_reservations');
         }
 
-        // Delete the reservation
         $entityManager->remove($reservation);
         $entityManager->flush();
 

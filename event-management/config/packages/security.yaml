@@ -24,7 +24,7 @@ security:
         api_login:
             pattern: ^/api/login
             stateless: true
-            provider: app_user_provider  # Add this line
+            provider: app_user_provider
             json_login:
                 check_path: /api/login
                 username_path: email
@@ -35,7 +35,7 @@ security:
         api_refresh:
             pattern: ^/api/token/refresh
             stateless: true
-            provider: app_user_provider  # Add this line
+            provider: app_user_provider
             jwt: ~
         
         api:
@@ -68,6 +68,8 @@ security:
                 lifetime: 604800
                 path: /admin
                 always_remember_me: true
+            access_denied_handler: ~
+            entry_point: form_login
         
         main:
             lazy: true
@@ -95,12 +97,12 @@ security:
                 always_remember_me: true
     
     access_control:
-        # Admin routes
+        # Admin routes - PUBLIC ACCESS first!
         - { path: ^/admin/login$, roles: PUBLIC_ACCESS }
         - { path: ^/admin/create-admin$, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
         
-        # API routes - order matters! Put specific routes first
+        # API routes
         - { path: ^/api/register, roles: PUBLIC_ACCESS }
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/token/refresh, roles: PUBLIC_ACCESS }

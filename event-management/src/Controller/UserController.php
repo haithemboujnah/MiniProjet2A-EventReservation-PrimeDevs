@@ -45,7 +45,7 @@ class UserController extends AbstractController
         UserPasswordHasherInterface $userPasswordHasher, 
         EntityManagerInterface $entityManager
     ): Response {
-        // Redirect if already logged in
+        
         if ($this->getUser()) {
             return $this->redirectToRoute('app_home');
         }
@@ -55,14 +55,13 @@ class UserController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Check if email already exists
+            
             $existingUser = $entityManager->getRepository(User::class)->findOneBy(['email' => $user->getEmail()]);
             if ($existingUser) {
                 $this->addFlash('error', 'This email is already registered.');
                 return $this->redirectToRoute('app_register');
             }
 
-            // Encode the plain password
             $user->setPassword(
                 $userPasswordHasher->hashPassword(
                     $user,
@@ -73,20 +72,16 @@ class UserController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
 
-            // Generate JWT token
             $token = $this->jwtManager->create($user);
             
-            // Create refresh token
             $refreshToken = $this->refreshTokenFactory->create($user->getUserIdentifier(), 30 * 24 * 3600);
             $this->refreshTokenManager->save($refreshToken);
 
-            // Store tokens in session for web use
             $request->getSession()->set('jwt_token', $token);
             $request->getSession()->set('refresh_token', $refreshToken->getRefreshToken());
 
             $this->addFlash('success', 'Registration successful! You are now logged in.');
             
-            // Redirect to home with tokens in session
             return $this->redirectToRoute('app_home');
         }
 
@@ -98,22 +93,16 @@ class UserController extends AbstractController
     #[Route('/login', name: 'app_login')]
     public function login(AuthenticationUtils $authenticationUtils, Request $request): Response
     {
-        // Redirect if already logged in
         if ($this->getUser()) {
             return $this->redirectToRoute('app_home');
         }
 
-        // Get the login error if there is one
         $error = $authenticationUtils->getLastAuthenticationError();
         
-        // Last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
 
-        // If login is successful, the user will be in the session
-        // We need to check if there's a user in the token storage
         if ($error === null && $request->isMethod('POST')) {
-            // The login was successful, but we need to get the user
-            // This will be handled after redirect
+            
         }
 
         return $this->render('user/login.html.twig', [
@@ -122,7 +111,6 @@ class UserController extends AbstractController
         ]);
     }
 
-    // Add this new route to handle post-login token generation
     #[Route('/login-success', name: 'app_login_success')]
     public function loginSuccess(Request $request): Response
     {
@@ -132,7 +120,6 @@ class UserController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        // Generate JWT token if not exists
         if (!$request->getSession()->has('jwt_token')) {
             $token = $this->jwtManager->create($user);
             $refreshToken = $this->refreshTokenFactory->create($user->getUserIdentifier(), 30 * 24 * 3600);
@@ -149,17 +136,14 @@ class UserController extends AbstractController
     #[Route('/logout', name: 'app_logout')]
     public function logout(Request $request, EntityManagerInterface $entityManager): void
     {
-        // Invalidate refresh tokens
         $token = $request->getSession()->get('jwt_token');
         
         if ($token) {
             try {
-                // Decode token to get user email
                 $data = $this->jwtEncoder->decode($token);
                 $email = $data['email'] ?? null;
                 
                 if ($email) {
-                    // Remove refresh tokens for this user
                     $refreshTokens = $entityManager->getRepository(RefreshToken::class)
                         ->findBy(['username' => $email]);
                     
@@ -169,15 +153,13 @@ class UserController extends AbstractController
                     $entityManager->flush();
                 }
             } catch (\Exception $e) {
-                // Token invalid, just proceed with logout
+
             }
         }
 
-        // Clear session tokens
         $request->getSession()->remove('jwt_token');
         $request->getSession()->remove('refresh_token');
 
-        // This method can be blank - it will be intercepted by the logout key on your firewall
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
     }
 
@@ -188,15 +170,12 @@ class UserController extends AbstractController
         
         $user = $this->getUser();
         
-        // Type check to ensure $user is your User entity
         if (!$user instanceof User) {
             throw $this->createAccessDeniedException('Invalid user type');
         }
         
-        // Get JWT token from session
         $jwtToken = $request->getSession()->get('jwt_token');
         
-        // If no token in session, generate one
         if (!$jwtToken) {
             $jwtToken = $this->jwtManager->create($user);
             $refreshToken = $this->refreshTokenFactory->create($user->getUserIdentifier(), 30 * 24 * 3600);
@@ -206,7 +185,6 @@ class UserController extends AbstractController
             $request->getSession()->set('refresh_token', $refreshToken->getRefreshToken());
         }
         
-        // Get user statistics
         $reservations = $reservationRepository->findByEmail($user->getEmail());
         $now = new \DateTime();
         
@@ -233,7 +211,6 @@ class UserController extends AbstractController
         
         $user = $this->getUser();
         
-        // Type check
         if (!$user instanceof User) {
             return $this->json(['error' => 'Invalid user type'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
@@ -242,15 +219,12 @@ class UserController extends AbstractController
         $refreshToken = $request->getSession()->get('refresh_token');
         
         if (!$jwtToken) {
-            // Generate new token if not exists
             $jwtToken = $this->jwtManager->create($user);
             
-            // Create refresh token
             $refreshTokenEntity = $this->refreshTokenFactory->create($user->getUserIdentifier(), 30 * 24 * 3600);
             $this->refreshTokenManager->save($refreshTokenEntity);
             $refreshToken = $refreshTokenEntity->getRefreshToken();
             
-            // Store in session
             $request->getSession()->set('jwt_token', $jwtToken);
             $request->getSession()->set('refresh_token', $refreshToken);
         }
@@ -268,7 +242,6 @@ class UserController extends AbstractController
         
         $user = $this->getUser();
         
-        // Type check
         if (!$user instanceof User) {
             return $this->json(['error' => 'Invalid user type'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
@@ -279,25 +252,20 @@ class UserController extends AbstractController
             return $this->json(['error' => 'No refresh token found'], Response::HTTP_BAD_REQUEST);
         }
 
-        // Validate refresh token
         $tokenEntity = $this->refreshTokenManager->get($refreshToken);
         
         if (!$tokenEntity || !$tokenEntity->isValid()) {
             return $this->json(['error' => 'Invalid refresh token'], Response::HTTP_UNAUTHORIZED);
         }
 
-        // Generate new JWT
         $newToken = $this->jwtManager->create($user);
 
-        // Generate new refresh token
         $newRefreshTokenEntity = $this->refreshTokenFactory->create($user->getUserIdentifier(), 30 * 24 * 3600);
         $this->refreshTokenManager->save($newRefreshTokenEntity);
         $newRefreshToken = $newRefreshTokenEntity->getRefreshToken();
 
-        // Delete old refresh token
         $this->refreshTokenManager->delete($tokenEntity);
 
-        // Store in session
         $request->getSession()->set('jwt_token', $newToken);
         $request->getSession()->set('refresh_token', $newRefreshToken);
 

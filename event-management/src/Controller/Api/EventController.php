@@ -27,7 +27,6 @@ class EventController extends AbstractController
         $page = max(1, $request->query->getInt('page', 1));
         $limit = 10;
 
-        // Get events based on filter
         switch ($filter) {
             case 'upcoming':
                 $allEvents = $eventRepository->findUpcomingEvents();
@@ -39,7 +38,6 @@ class EventController extends AbstractController
                 $allEvents = $eventRepository->findAllOrderedByDate();
         }
 
-        // Filter by search term if provided
         if (!empty($search)) {
             $allEvents = array_filter($allEvents, function($event) use ($search) {
                 return stripos($event->getTitle(), $search) !== false || 
@@ -48,7 +46,6 @@ class EventController extends AbstractController
             });
         }
 
-        // Calculate pagination
         $totalEvents = count($allEvents);
         $totalPages = ceil($totalEvents / $limit);
         $offset = ($page - 1) * $limit;
@@ -82,7 +79,6 @@ class EventController extends AbstractController
         SerializerInterface $serializer,
         ValidatorInterface $validator
     ): JsonResponse {
-        // Check authentication
         $user = $this->getUser();
         if (!$user) {
             return $this->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
@@ -98,7 +94,6 @@ class EventController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
-        // Check if user already has a reservation for this event
         $existingReservation = $entityManager->getRepository(Reservation::class)
             ->findOneBy([
                 'event' => $event,
