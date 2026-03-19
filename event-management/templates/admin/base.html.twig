@@ -289,7 +289,172 @@
                     });
                 };
             })();
-            
+
+            class NotificationManager {
+                constructor() {
+                    this.bell = document.getElementById('notificationBell');
+                    this.countBadge = document.getElementById('notificationCount');
+                    this.modal = document.getElementById('notificationModal');
+                    this.allList = document.getElementById('allNotificationsList');
+                    this.unreadList = document.getElementById('unreadNotificationsList');
+                    this.allCountSpan = document.getElementById('allCount');
+                    this.unreadCountSpan = document.getElementById('unreadCount');
+                    this.markAllBtn = document.getElementById('markAllReadBtn');
+                    
+                    this.notifications = [];
+                    this.unreadCount = 0;
+                    
+                    this.init();
+                }
+                
+                init() {
+                    // Load notifications
+                    this.loadNotifications();
+                    
+                    // Refresh every 30 seconds
+                    setInterval(() => this.loadNotifications(), 30000);
+                    
+                    // Mark all as read
+                    if (this.markAllBtn) {
+                        this.markAllBtn.addEventListener('click', () => this.markAllAsRead());
+                    }
+                    
+                    // Reset unread count when modal is opened
+                    if (this.modal) {
+                        this.modal.addEventListener('show.bs.modal', () => {
+                            this.resetUnreadCount();
+                        });
+                    }
+                }
+                
+                loadNotifications() {
+                    fetch('{{ path('admin_notifications') }}')
+                        .then(response => response.json())
+                        .then(data => {
+                            this.notifications = data.notifications;
+                            this.unreadCount = data.total;
+                            this.updateUI();
+                        })
+                        .catch(error => console.error('Error loading notifications:', error));
+                }
+                
+                updateUI() {
+                    // Update badge count
+                    if (this.countBadge) {
+                        this.countBadge.textContent = this.unreadCount;
+                        this.countBadge.style.display = this.unreadCount > 0 ? 'flex' : 'none';
+                    }
+                    
+                    // Update counts in tabs
+                    if (this.allCountSpan) {
+                        this.allCountSpan.textContent = this.notifications.length;
+                    }
+                    if (this.unreadCountSpan) {
+                        this.unreadCountSpan.textContent = this.unreadCount;
+                    }
+                    
+                    // Render notifications
+                    this.renderNotifications('all', this.allList);
+                    this.renderNotifications('unread', this.unreadList);
+                }
+                
+                renderNotifications(type, container) {
+                    if (!container) return;
+                    
+                    const filtered = type === 'unread' 
+                        ? this.notifications.slice(0, this.unreadCount) // Simulate unread
+                        : this.notifications;
+                    
+                    if (filtered.length === 0) {
+                        container.innerHTML = `
+                            <div class="notification-empty">
+                                <i class="bi bi-bell-slash"></i>
+                                <p>No notifications</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    let html = '';
+                    filtered.forEach((notif, index) => {
+                        html += `
+                            <div class="notification-item ${index < this.unreadCount ? 'unread' : ''}" data-id="${notif.id}">
+                                <div class="notification-icon">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <div class="notification-title">
+                                        New Reservation from ${notif.name}
+                                    </div>
+                                    <div class="notification-details">
+                                        <span><i class="bi bi-envelope"></i> ${notif.email}</span>
+                                        <span><i class="bi bi-calendar-event"></i> ${notif.event}</span>
+                                    </div>
+                                    <div class="notification-time">
+                                        <i class="bi bi-clock"></i> ${notif.time_ago}
+                                    </div>
+                                </div>
+                                <div class="notification-actions">
+                                    <button class="btn-mark-read" onclick="notificationManager.markAsRead(${notif.id})" title="Mark as read">
+                                        <i class="bi bi-check-circle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    container.innerHTML = html;
+                }
+                
+                markAsRead(id) {
+                    // Find and remove from unread
+                    const index = this.notifications.findIndex(n => n.id === id);
+                    if (index !== -1 && index < this.unreadCount) {
+                        this.unreadCount--;
+                        
+                        // Send to server (optional)
+                        fetch('{{ path('admin_notifications_mark_read') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ ids: [id] })
+                        });
+                        
+                        this.updateUI();
+                    }
+                }
+                
+                markAllAsRead() {
+                    if (this.unreadCount === 0) return;
+                    
+                    // Mark all as read
+                    this.unreadCount = 0;
+                    
+                    // Send to server
+                    fetch('{{ path('admin_notifications_mark_read') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ 
+                            ids: this.notifications.slice(0, this.unreadCount).map(n => n.id) 
+                        })
+                    });
+                    
+                    this.updateUI();
+                }
+                
+                resetUnreadCount() {
+                    // Optional: You might want to mark all as read when modal is opened
+                    // this.markAllAsRead();
+                }
+            }
+
+            // Initialize notification manager
+            document.addEventListener('DOMContentLoaded', function() {
+                window.notificationManager = new NotificationManager();
+            });
         </script>
         
         {% block javascripts %}{% endblock %}
