@@ -73,12 +73,20 @@ git clone https://github.com/haithemboujnah/MiniProjet2A-EventReservation-PrimeD
 cd event-management
 ```
 
+### 3. Configuration de la base de données
+- CREATE DATABASE event_db;
+
+### 4. Lancer le projet
+- composer install
+- php bin/console doctrine:migrations:migrate
+- symfony server:start
+
 ### 5. Comptes par défaut 
+- Admin : username: admin / password: admin123 
+- Utilisateur : username: haithem@gmail.com / password: haithem123 
 
-Admin : username: admin / password: admin123 
-Utilisateur : username: haithem@gmail.com / password: haithem123 
-
-Site : http://127.0.0.1:8000/
+## 🌐 Accès
+- Site : http://localhost:8000/
 
 ## 👥 Équipe de développement
 Haithem Boujnah [Grp2] | Développeur Fullstack | haithemboujnah1@gmail.com
