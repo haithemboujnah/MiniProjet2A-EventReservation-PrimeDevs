@@ -1,0 +1,394 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Admin Profile - {{ admin.fullName }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/admin-profiler.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="profile-container">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-avatarr">
+                {{ admin.fullName|slice(0, 1)|upper }}
+            </div>
+            <h1 class="profile-namee">{{ admin.fullName }}</h1>
+            <div class="profile-username">
+                <i class="bi bi-person-badge"></i>
+                @{{ admin.username }}
+            </div>
+            <div class="profile-badge">
+                <i class="bi bi-shield-lock-fill"></i>
+                Administrator
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-calendar-event"></i>
+                </div>
+                <div class="stat-value">{{ stats.total_events }}</div>
+                <div class="stat-label">Total Events</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-sun"></i>
+                </div>
+                <div class="stat-value">{{ stats.upcoming_events }}</div>
+                <div class="stat-label">Upcoming Events</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-ticket"></i>
+                </div>
+                <div class="stat-value">{{ stats.total_reservations }}</div>
+                <div class="stat-label">Total Reservations</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div class="stat-value">{{ stats.today_reservations }}</div>
+                <div class="stat-label">Today's Bookings</div>
+            </div>
+        </div>
+
+        <!-- Token Card -->
+        {% if jwt_token %}
+            <div class="token-card">
+                <div class="token-header">
+                    <div class="token-title">
+                        <i class="bi bi-key-fill"></i>
+                        API Access Token (JWT)
+                    </div>
+                    <div class="token-actions">
+                        <button class="btn-token btn-copy" onclick="copyToken()" id="copyTokenBtn">
+                            <i class="bi bi-files"></i>
+                            Copy Token
+                        </button>
+                        <button class="btn-token btn-refresh" onclick="refreshToken()" id="refreshTokenBtn">
+                            <i class="bi bi-arrow-repeat"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div class="token-display" id="tokenDisplay">
+                    {{ jwt_token }}
+                </div>
+
+                <div class="token-info">
+                    <span>
+                        <i class="bi bi-clock"></i>
+                        Expires: <strong id="tokenExpiry">Calculating...</strong>
+                    </span>
+                    <span>
+                        <i class="bi bi-shield-check"></i>
+                        Status: <strong id="tokenStatus" style="color: #48bb78;">Active</strong>
+                    </span>
+                </div>
+
+                <div id="successMessage" class="success-message" style="display: none;"></div>
+            </div>
+        {% endif %}
+
+        <!-- Admin Information -->
+        <div class="info-section">
+            <div class="section-title">
+                <span>
+                    <i class="bi bi-person-vcard"></i>
+                    Administrator Information
+                </span>
+                <span class="badge bg-primary">ID: #{{ admin.id }}</span>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="bi bi-person"></i>
+                        Full Name
+                    </div>
+                    <div class="info-value">{{ admin.fullName }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="bi bi-person-badge"></i>
+                        Username
+                    </div>
+                    <div class="info-value">{{ admin.username }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="bi bi-envelope"></i>
+                        Email Address
+                    </div>
+                    <div class="info-value">{{ admin.email }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="bi bi-shield-lock"></i>
+                        Role
+                    </div>
+                    <div class="info-value">Super Administrator</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="bi bi-calendar-plus"></i>
+                        Account Created
+                    </div>
+                    <div class="info-value">{{ admin.createdAt ? admin.createdAt|date('F j, Y') : 'N/A' }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="bi bi-arrow-repeat"></i>
+                        Last Updated
+                    </div>
+                    <div class="info-value">{{ admin.updatedAt ? admin.updatedAt|date('F j, Y') : 'N/A' }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="info-section">
+            <div class="section-title">
+                <span>
+                    <i class="bi bi-activity"></i>
+                    Recent Activity
+                </span>
+            </div>
+
+            <div class="activity-tabs">
+                <button class="tab-btn active" onclick="switchTab('reservations')" id="tabReservationsBtn">
+                    <i class="bi bi-ticket"></i>
+                    Recent Reservations
+                </button>
+                <button class="tab-btn" onclick="switchTab('events')" id="tabEventsBtn">
+                    <i class="bi bi-calendar-event"></i>
+                    Recent Events
+                </button>
+            </div>
+
+            <div class="tab-content active" id="reservationsTab">
+                <ul class="activity-list">
+                    {% for reservation in recent_activity.reservations %}
+                        <li class="activity-item">
+                            <div class="activity-icon">
+                                <i class="bi bi-person"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">
+                                    {{ reservation.name }} booked {{ reservation.event.title }}
+                                </div>
+                                <div class="activity-meta">
+                                    <span><i class="bi bi-envelope"></i> {{ reservation.email }}</span>
+                                    <span><i class="bi bi-phone"></i> {{ reservation.phone }}</span>
+                                </div>
+                                <div class="activity-time">
+                                    <i class="bi bi-clock"></i>
+                                    {{ reservation.createdAt|date('M d, Y - H:i') }}
+                                </div>
+                            </div>
+                        </li>
+                    {% else %}
+                        <li class="activity-item">
+                            <div class="activity-content">
+                                <p class="text-muted">No recent reservations</p>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="tab-content" id="eventsTab">
+                <ul class="activity-list">
+                    {% for event in recent_activity.events %}
+                        <li class="activity-item">
+                            <div class="activity-icon">
+                                <i class="bi bi-calendar"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">
+                                    {{ event.title }}
+                                </div>
+                                <div class="activity-meta">
+                                    <span><i class="bi bi-geo-alt"></i> {{ event.location }}</span>
+                                    <span><i class="bi bi-people"></i> {{ event.reservations|length }} bookings</span>
+                                </div>
+                                <div class="activity-time">
+                                    <i class="bi bi-calendar"></i>
+                                    {{ event.date|date('M d, Y - H:i') }}
+                                </div>
+                            </div>
+                        </li>
+                    {% else %}
+                        <li class="activity-item">
+                            <div class="activity-content">
+                                <p class="text-muted">No recent events</p>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="{{ path('admin_dashboard') }}" class="btn btn-primary">
+                <i class="bi bi-speedometer2"></i>
+                Dashboard
+            </a>
+            <a href="{{ path('admin_events_index') }}" class="btn btn-outline">
+                <i class="bi bi-calendar-event"></i>
+                Manage Events
+            </a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function copyToken() {
+            const tokenElement = document.getElementById('tokenDisplay');
+            const token = tokenElement.innerText.trim();
+            const copyBtn = document.getElementById('copyTokenBtn');
+            
+            navigator.clipboard.writeText(token).then(() => {
+                const originalHtml = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
+                copyBtn.classList.add('btn-copy');
+                
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalHtml;
+                }, 2000);
+            });
+        }
+
+        function refreshToken() {
+            const refreshBtn = document.getElementById('refreshTokenBtn');
+            const originalText = refreshBtn.innerHTML;
+            
+            refreshBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Refreshing...';
+            refreshBtn.disabled = true;
+
+            fetch('{{ path('admin_refresh_token') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.token) {
+                    document.getElementById('tokenDisplay').innerText = data.token;
+                    
+                    const successMsg = document.getElementById('successMessage');
+                    successMsg.innerHTML = '<i class="bi bi-check-circle"></i> Token refreshed successfully!';
+                    successMsg.style.display = 'flex';
+                    
+                    setTimeout(() => {
+                        successMsg.style.display = 'none';
+                    }, 3000);
+                }
+                
+                refreshBtn.innerHTML = originalText;
+                refreshBtn.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                refreshBtn.innerHTML = originalText;
+                refreshBtn.disabled = false;
+                
+                const successMsg = document.getElementById('successMessage');
+                successMsg.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Error refreshing token';
+                successMsg.style.color = '#f56565';
+                successMsg.style.display = 'flex';
+                
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                    successMsg.style.color = '#48bb78';
+                }, 3000);
+            });
+        }
+
+        function switchTab(tab) {
+            // Update tab buttons
+            document.getElementById('tabReservationsBtn').classList.remove('active');
+            document.getElementById('tabEventsBtn').classList.remove('active');
+            
+            if (tab === 'reservations') {
+                document.getElementById('tabReservationsBtn').classList.add('active');
+                document.getElementById('reservationsTab').classList.add('active');
+                document.getElementById('eventsTab').classList.remove('active');
+            } else {
+                document.getElementById('tabEventsBtn').classList.add('active');
+                document.getElementById('eventsTab').classList.add('active');
+                document.getElementById('reservationsTab').classList.remove('active');
+            }
+        }
+
+        // Calculate token expiry
+        function calculateTokenExpiry() {
+            const token = '{{ jwt_token }}';
+            if (!token || token === '') return;
+
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                
+                if (payload.exp) {
+                    const expiryDate = new Date(payload.exp * 1000);
+                    const now = new Date();
+                    const diffMs = expiryDate - now;
+                    const diffMins = Math.floor(diffMs / 60000);
+                    const diffHours = Math.floor(diffMs / 3600000);
+                    
+                    let expiryText = '';
+                    if (diffMs <= 0) {
+                        expiryText = 'Expired';
+                        document.getElementById('tokenStatus').innerHTML = '<span style="color: #f56565;">Expired</span>';
+                    } else if (diffHours > 0) {
+                        expiryText = `${diffHours}h ${diffMins % 60}m`;
+                        document.getElementById('tokenStatus').innerHTML = '<span style="color: #48bb78;">Active</span>';
+                    } else {
+                        expiryText = `${diffMins}m`;
+                        document.getElementById('tokenStatus').innerHTML = '<span style="color: #48bb78;">Active</span>';
+                    }
+                    
+                    document.getElementById('tokenExpiry').textContent = expiryText;
+                }
+            } catch (e) {
+                console.error('Error decoding token:', e);
+            }
+        }
+
+        // Add spin animation style
+        const style = document.createElement('style');
+        style.textContent = `
+            .spin {
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            calculateTokenExpiry();
+        });
+    </script>
+{% endblock %}

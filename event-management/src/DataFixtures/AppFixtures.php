@@ -21,9 +21,11 @@ class AppFixtures extends Fixture
     {
         // Create test user
         $user = new User();
-        $user->setEmail('   ');
+        $user->setEmail('haithem@gmail.com');
         $user->setFullName('haithem');
         $user->setPassword($this->passwordHasher->hashPassword($user, 'haithem123'));
+        $user->setCreatedAt(new \DateTimeImmutable());
+
         $manager->persist($user);
 
         // Create events

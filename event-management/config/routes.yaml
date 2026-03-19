@@ -18,3 +18,13 @@ api_login:
 api_refresh_token:
     path: /api/token/refresh
     methods: ['POST']
+
+admin_notifications_get:
+    path: /admin/notifications/get
+    controller: App\Controller\Admin\NotificationController::getNotifications
+    methods: GET
+
+admin_notifications_mark_read:
+    path: /admin/notifications/mark-read
+    controller: App\Controller\Admin\NotificationController::markAsRead
+    methods: POST

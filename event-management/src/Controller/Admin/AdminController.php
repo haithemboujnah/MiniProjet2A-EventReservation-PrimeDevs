@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 #[Route('/admin')]
 #[IsGranted('ROLE_ADMIN')]
@@ -151,5 +152,78 @@ class AdminController extends AbstractController
         }
 
         return $this->redirectToRoute('admin_event_reservations', ['id' => $eventId]);
+    }
+
+
+    #[Route('/notifications', name: 'admin_notifications', methods: ['GET'])]
+    public function getNotifications(ReservationRepository $reservationRepository): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        
+        // Get recent reservations (last 24 hours)
+        $since = (new \DateTime())->modify('-24 hours');
+        $recentReservations = $reservationRepository->createQueryBuilder('r')
+            ->where('r.createdAt >= :since')
+            ->setParameter('since', $since)
+            ->orderBy('r.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+        
+        // Get total unread (you can implement an "is_read" field if needed)
+        // For now, we'll just return all recent reservations
+        $totalNew = count($recentReservations);
+        
+        $notifications = array_map(function($reservation) {
+            return [
+                'id' => $reservation->getId(),
+                'name' => $reservation->getName(),
+                'email' => $reservation->getEmail(),
+                'event' => $reservation->getEvent()->getTitle(),
+                'created_at' => $reservation->getCreatedAt()->format('Y-m-d H:i:s'),
+                'time_ago' => $this->getTimeAgo($reservation->getCreatedAt()),
+            ];
+        }, $recentReservations);
+        
+        return $this->json([
+            'total' => $totalNew,
+            'notifications' => $notifications
+        ]);
+    }
+
+    #[Route('/notifications/mark-read', name: 'admin_notifications_mark_read', methods: ['POST'])]
+    public function markNotificationsRead(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        
+        $data = json_decode($request->getContent(), true);
+        $ids = $data['ids'] ?? [];
+        
+        // Here you would mark notifications as read in your database
+        // For now, we'll just return success
+        
+        return $this->json(['success' => true]);
+    }
+
+    private function getTimeAgo(\DateTimeInterface $dateTime): string
+    {
+        $now = new \DateTime();
+        $diff = $now->diff($dateTime);
+        
+        if ($diff->y > 0) {
+            return $diff->y . ' year' . ($diff->y > 1 ? 's' : '') . ' ago';
+        }
+        if ($diff->m > 0) {
+            return $diff->m . ' month' . ($diff->m > 1 ? 's' : '') . ' ago';
+        }
+        if ($diff->d > 0) {
+            return $diff->d . ' day' . ($diff->d > 1 ? 's' : '') . ' ago';
+        }
+        if ($diff->h > 0) {
+            return $diff->h . ' hour' . ($diff->h > 1 ? 's' : '') . ' ago';
+        }
+        if ($diff->i > 0) {
+            return $diff->i . ' minute' . ($diff->i > 1 ? 's' : '') . ' ago';
+        }
+        return 'Just now';
     }
 }
