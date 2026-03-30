@@ -12,9 +12,12 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Service\EmailService;
 
 class EventController extends AbstractController
 {
+    public function __construct(private EmailService $emailService) {}
+
     #[Route('/', name: 'app_home')]
     public function index(EventRepository $eventRepository): Response
     {
@@ -82,9 +85,7 @@ class EventController extends AbstractController
     {
         if (!$this->getUser()) {
             $request->getSession()->set('redirect_after_login', $request->getUri());
-            
             $this->addFlash('warning', 'Please login to make a reservation');
-            
             return $this->redirectToRoute('app_login');
         }
 
@@ -94,7 +95,6 @@ class EventController extends AbstractController
         }
 
         $user = $this->getUser();
-        
         if (!$user instanceof User) {
             throw $this->createAccessDeniedException('Invalid user type');
         }
@@ -111,7 +111,16 @@ class EventController extends AbstractController
             $entityManager->persist($reservation);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Your reservation has been confirmed!');
+            $this->emailService->sendReservationConfirmation(
+                $reservation->getEmail(),
+                $reservation->getName(),
+                $event->getTitle(),
+                $event->getDate(),
+                $reservation->getId(),
+                $event->getLocation()
+            );
+
+            $this->addFlash('success', 'Your reservation has been confirmed! A confirmation email has been sent to ' . $reservation->getEmail());
             return $this->redirectToRoute('app_reservation_confirmation', ['id' => $reservation->getId()]);
         }
 
