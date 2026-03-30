@@ -14,6 +14,7 @@ L'application utilise des mécanismes modernes d'authentification combinant **JW
 - ✅ Consultation des événements avec filtres (à venir, passés, recherche)
 - ✅ Détails complets d'un événement (description, date, lieu, image)
 - ✅ Réservation en ligne avec validation
+- ✅ Confirmation par email automatique après chaque réservation
 - ✅ Tableau de bord personnel des réservations (à venir / passées)
 - ✅ Gestion des passkeys (WebAuthn) pour une authentification sans mot de passe
 - ✅ Profil utilisateur avec affichage et rafraîchissement du token JWT
@@ -43,6 +44,7 @@ L'application utilise des mécanismes modernes d'authentification combinant **JW
 - Doctrine ORM
 - JWT (LexikJWTAuth) + Gesdinet Refresh Token
 - WebAuthn (Passkeys)
+- Symfony Mailer (envoi d'emails de confirmation)
 
 ### Front-end
 - Twig (moteur de templates)
