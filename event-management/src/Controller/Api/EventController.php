@@ -15,10 +15,13 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use App\Service\EmailService;
 
 #[Route('/api/events', name: 'api_events_')]
 class EventController extends AbstractController
 {
+    public function __construct(private EmailService $emailService) {}
+
     #[Route('', name: 'list', methods: ['GET'])]
     public function list(EventRepository $eventRepository, SerializerInterface $serializer, Request $request): JsonResponse
     {
@@ -71,7 +74,7 @@ class EventController extends AbstractController
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
-    #[Route('/{id}/reserve', name: 'reserve', methods: ['POST'])]
+#[Route('/{id}/reserve', name: 'reserve', methods: ['POST'])]
     public function reserve(
         Event $event,
         Request $request,
@@ -122,8 +125,21 @@ class EventController extends AbstractController
         $entityManager->persist($reservation);
         $entityManager->flush();
 
+        $this->emailService->sendReservationConfirmation(
+            $reservation->getEmail(),
+            $reservation->getName(),
+            $event->getTitle(),
+            $event->getDate(),
+            $reservation->getId(),
+            $event->getLocation()
+        );
+
         $data = $serializer->serialize($reservation, 'json', ['groups' => 'reservation:read']);
-        return new JsonResponse($data, Response::HTTP_CREATED, [], true);
+        return new JsonResponse([
+            'success' => true,
+            'message' => 'Reservation confirmed! Check your email for details.',
+            'reservation' => json_decode($data)
+        ], Response::HTTP_CREATED);
     }
 
     #[Route('/{id}/cancel', name: 'cancel', methods: ['POST'])]
